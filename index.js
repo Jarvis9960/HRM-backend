@@ -1,13 +1,31 @@
-import express from 'express';
+import express from "express";
+import dotenv from "dotenv";
+import cors from "cors";
+import path from "path";
+import connectDb from "./Database/connectDB.js";
+dotenv.config({ path: path.resolve("./config.env")});
+import adminRoute from "./Routes/AdminRoute.js";
 
 const app = express();
-const PORT = 5000
 
-app.get('/', (req, res)=>{
-    res.send('Durgesh Here')
-})
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
+app.use(cors({ origin: "http://localhost:3000" }));
 
+// database connection function
+connectDb()
+  .then((res) => {
+    console.log("connection to database is successfull");
+  })
+  .catch((err) => {
+    console.log(err);
+  });
+
+  app.use("/", adminRoute)
+
+// app to listen on port function
+const PORT = process.env.PORT;
 app.listen(PORT, () => {
-    console.log(`server is running on PORT ${PORT}`)
-})
+  console.log(`server is listening on port ${PORT}`);
+});
