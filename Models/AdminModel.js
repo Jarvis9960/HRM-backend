@@ -1,6 +1,6 @@
 import mongoose from "mongoose"
 
-const AdminSchema = new mongoose.Schema(
+const adminSchema = new mongoose.Schema(
     {
         first_name :{
                 type: String,
@@ -29,5 +29,5 @@ const AdminSchema = new mongoose.Schema(
     { timestamps: true  }
     )
 
-    const AdminModel = mongoose.model("Admin", AdminSchema)
+    const AdminModel = mongoose.model("Admin", adminSchema)
     export default AdminModel
