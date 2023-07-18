@@ -12,7 +12,7 @@ export const createAdmin = async (req, res) => {
     if (!Object.keys(req.body).length > 0) {
       return res
         .status(400)
-        .json({ status: false, message: "Please provide Details" });
+        .json({ status: false, message: "Please provide details" });
     };
     if (!first_name) {
       return res
