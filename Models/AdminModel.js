@@ -20,11 +20,6 @@ const adminSchema = new mongoose.Schema(
                 required:true,
                 minlength: 8
         },
-        role: {
-            type: String,
-            required: true,
-            default: "Admin"
-        },
     },
     { timestamps: true  }
     )

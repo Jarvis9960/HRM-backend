@@ -18,10 +18,6 @@ const contractorSchema = new mongoose.Schema(
     password: {
       type: String,
     },
-    role: {
-      type: String,
-      default: "Contractor",
-    },
     profileId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Profile",

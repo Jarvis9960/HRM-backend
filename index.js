@@ -3,7 +3,7 @@ import dotenv from "dotenv";
 import cors from "cors";
 import path from "path";
 import connectDb from "./Database/connectDB.js";
-dotenv.config({ path: path.resolve("./config.env")});
+dotenv.config({ path: path.resolve("./config.env") });
 import adminRoute from "./Routes/AdminRoute.js";
 
 const app = express();
@@ -22,7 +22,7 @@ connectDb()
     console.log(err);
   });
 
-  app.use("/", adminRoute)
+app.use("/api", adminRoute);
 
 // app to listen on port function
 const PORT = process.env.PORT;
