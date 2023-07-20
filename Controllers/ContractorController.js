@@ -1,4 +1,5 @@
 import ContractorModel from "../Models/ContractorModel.js";
+import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 
 const nameregex = /^[a-zA-Z_ ]{1,30}$/;
 const emailValidation = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
@@ -74,4 +75,118 @@ export const createContractor = async (req, res) => {
 
 // Update contractor's profile
 
+export const updatecontractorprofile = async (req, res) => {
+  try {
+    let {
+      actualName,
+      actualAadharNo,
+      actualPanNo,
+      actualPanImage,
+      actualAdharImage,
+      beneficiaryName,
+      beneficiaryAadharNo,
+      beneficiaryPanNo,
+      beneficiaryPanImage,
+      beneficiaryAadharImage,
+      bankName,
+      bankAccNo,
+      ifscCode,
+      contractName,
+      joinDate,
+      birthday,
+      address,
+      gender,
+      reportTo,
+      nationality,
+      religion,
+      emergencyContactName,
+      emergencyContactRelation,
+      emergencyContactNumber,
+    } = req.body;
+    if (
+      !actualName ||
+      !actualAadharNo ||
+      !actualPanNo ||
+      !beneficiaryName ||
+      !beneficiaryAadharNo ||
+      !beneficiaryPanNo ||
+      !contractName ||
+      !joinDate ||
+      !beneficiaryName ||
+      !birthday ||
+      !address ||
+      !gender ||
+      !reportTo ||
+      !nationality ||
+      !emergencyContactName ||
+      !emergencyContactRelation ||
+      !emergencyContactNumber
+    ) {
+      return res.status(422).json({
+        status: "false",
+        message: "Please fill all the required fields",
+      });
+    } else if (
+      !beneficiaryName.match(nameregex) ||
+      !actualName.match(nameregex)
+    ) {
+      return res
+        .status(422)
+        .json({ status: false, message: "Please provide valid name" });
+    }
 
+    const sameActualPanNo = await ContractorProfileModel.findOne({
+      ActualPanNo: actualPanNo,
+    });
+    const sameActualAadhar = await ContractorProfileModel.findOne({
+      ActualAadharNo: actualAadharNo,
+    });
+
+    if (sameActualPanNo || sameActualAadhar) {
+      res
+        .status(422)
+        .json({ status: false, message: "Actual id already exist" });
+    }
+
+    const sameBeneficiaryAadhar = await ContractorProfileModel.findOne({
+      BeneficiaryAadharNo: beneficiaryAadharNo,
+    });
+    const sameBeneficiaryPan = await ContractorProfileModel.findOne({ BeneficiaryPanNo: beneficiaryPanNo});
+
+    if(sameBeneficiaryAadhar || sameBeneficiaryPan){
+      res
+      .status(422)
+      .json({ status: false, message: "Beneficiary id already exist" });
+    }
+
+    const updatecontractorprofile = await ContractorProfileModel.create({
+      ActualName: actualName,
+      ActualAadharNo: actualAadharNo,
+      ActualPanNo: actualPanNo,
+      ActualPanImage: actualPanImage,
+      ActualAdharImage: actualAdharImage,
+      BeneficiaryName: beneficiaryName,
+      BeneficiaryAadharNo: beneficiaryAadharNo,
+      BeneficiaryPanNo: beneficiaryPanNo,
+      BeneficiaryPanImage: beneficiaryPanImage,
+      BeneficiaryAadharImage: beneficiaryAadharImage,
+      BankName: bankName,
+      BankAccNo: bankAccNo,
+      IFSCcode: ifscCode,
+      ContractName: contractName,
+      JoinDate: joinDate,
+      Birthday: birthday,
+      Address: address,
+      Gender: gender,
+      ReportTo: reportTo,
+      Nationality: nationality,
+      Religion: religion,
+      EmergencyContactName: emergencyContactName,
+      EmergencyContactRelationship: emergencyContactRelation,
+      EmergencyContactNumber: emergencyContactNumber,
+    });
+    res.status(201).json({ status: true, message: updatecontractorprofile });
+  } catch (err) {
+    res.status(500).json({ status: false, message: err.message });
+  }
+};
