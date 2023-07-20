@@ -5,6 +5,8 @@ import path from "path";
 import connectDb from "./Database/connectDB.js";
 dotenv.config({ path: path.resolve("./config.env") });
 import adminRoute from "./Routes/AdminRoute.js";
+import contractorRoute from "./Routes/ContractorRoute.js";
+
 
 const app = express();
 
@@ -23,6 +25,8 @@ connectDb()
   });
 
 app.use("/api", adminRoute);
+app.use("/api", contractorRoute);
+
 
 // app to listen on port function
 const PORT = process.env.PORT;
