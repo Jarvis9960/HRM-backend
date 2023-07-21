@@ -89,6 +89,10 @@ const contractorSchema = new mongoose.Schema({
       type: Number,
       required: true,
     },
+    IsApproved: {
+        type: Boolean,
+        default: false,
+    }
   });
 
  const ContractorProfileModel = mongoose.model("ContractorProfile", contractorSchema);

@@ -81,13 +81,9 @@ export const updatecontractorprofile = async (req, res) => {
       actualName,
       actualAadharNo,
       actualPanNo,
-      actualPanImage,
-      actualAdharImage,
       beneficiaryName,
       beneficiaryAadharNo,
       beneficiaryPanNo,
-      beneficiaryPanImage,
-      beneficiaryAadharImage,
       bankName,
       bankAccNo,
       ifscCode,
@@ -103,6 +99,8 @@ export const updatecontractorprofile = async (req, res) => {
       emergencyContactRelation,
       emergencyContactNumber,
     } = req.body;
+    let files = req.files;
+    console.log(files)
     if (
       !actualName ||
       !actualAadharNo ||
@@ -112,7 +110,6 @@ export const updatecontractorprofile = async (req, res) => {
       !beneficiaryPanNo ||
       !contractName ||
       !joinDate ||
-      !beneficiaryName ||
       !birthday ||
       !address ||
       !gender ||
@@ -120,7 +117,10 @@ export const updatecontractorprofile = async (req, res) => {
       !nationality ||
       !emergencyContactName ||
       !emergencyContactRelation ||
-      !emergencyContactNumber
+      !emergencyContactNumber ||
+      !bankName ||
+      !bankAccNo ||
+      !ifscCode
     ) {
       return res.status(422).json({
         status: "false",
@@ -142,34 +142,38 @@ export const updatecontractorprofile = async (req, res) => {
       ActualAadharNo: actualAadharNo,
     });
 
-    if (sameActualPanNo || sameActualAadhar) {
-      res
-        .status(422)
-        .json({ status: false, message: "Actual id already exist" });
-    }
+    // if (sameActualPanNo || sameActualAadhar) {
+    //   res
+    //     .status(422)
+    //     .json({ status: false, message: "Actual id already exist" });
+    // }
 
     const sameBeneficiaryAadhar = await ContractorProfileModel.findOne({
       BeneficiaryAadharNo: beneficiaryAadharNo,
     });
     const sameBeneficiaryPan = await ContractorProfileModel.findOne({ BeneficiaryPanNo: beneficiaryPanNo});
 
-    if(sameBeneficiaryAadhar || sameBeneficiaryPan){
-      res
-      .status(422)
-      .json({ status: false, message: "Beneficiary id already exist" });
-    }
+    // if(sameBeneficiaryAadhar || sameBeneficiaryPan){
+    //   res
+    //   .status(422)
+    //   .json({ status: false, message: "Beneficiary id already exist" });
+    // }
+    const actualPanLink = files.actualPanImage.path
+    const actualAadharLink = files.actualAdharImage.path
+    const beneficiaryPanLink = files.beneficiaryPanImage.path
+    const beneficiaryAadharLink = files.beneficiaryAadharImage.path
 
     const updatecontractorprofile = await ContractorProfileModel.create({
       ActualName: actualName,
       ActualAadharNo: actualAadharNo,
       ActualPanNo: actualPanNo,
-      ActualPanImage: actualPanImage,
-      ActualAdharImage: actualAdharImage,
+      ActualPanImageLink: actualPanLink,
+      ActualAdharImageLink: actualAadharLink,
       BeneficiaryName: beneficiaryName,
       BeneficiaryAadharNo: beneficiaryAadharNo,
       BeneficiaryPanNo: beneficiaryPanNo,
-      BeneficiaryPanImage: beneficiaryPanImage,
-      BeneficiaryAadharImage: beneficiaryAadharImage,
+      BeneficiaryPanImageLink: beneficiaryPanLink,
+      BeneficiaryAadharImageLink: beneficiaryAadharLink,
       BankName: bankName,
       BankAccNo: bankAccNo,
       IFSCcode: ifscCode,
@@ -182,7 +186,7 @@ export const updatecontractorprofile = async (req, res) => {
       Nationality: nationality,
       Religion: religion,
       EmergencyContactName: emergencyContactName,
-      EmergencyContactRelationship: emergencyContactRelation,
+      EmergencyContactRelation: emergencyContactRelation,
       EmergencyContactNumber: emergencyContactNumber,
     });
     res.status(201).json({ status: true, message: updatecontractorprofile });
