@@ -6,12 +6,13 @@ import connectDb from "./Database/connectDB.js";
 dotenv.config({ path: path.resolve("./config.env") });
 import adminRoute from "./Routes/AdminRoute.js";
 import contractorRoute from "./Routes/ContractorRoute.js";
-
+import cookieParser from 'cookie-parser';
 
 const app = express();
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.use(cors({ origin: "http://localhost:3000" }));
 

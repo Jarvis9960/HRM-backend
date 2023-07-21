@@ -5,10 +5,11 @@ const nameregex = /^[a-zA-Z_ ]{1,30}$/;
 const emailValidation = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 const passwordValidation = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{8,}$/;
 
+//Create Admin
 export const createAdmin = async (req, res) => {
   try {
     const data = req.body;
-    let { first_name, last_name, email, repeat_password, password, repeat_email } = req.body;
+    let { first_name, last_name, email, repeat_email, password, repeat_password} = req.body;
     if (!Object.keys(req.body).length > 0) {
       return res
         .status(400)
@@ -99,10 +100,7 @@ export const createAdmin = async (req, res) => {
   }
 };
 
-
-
-
-
+//Login Admin
 export const loginAdmin = async function (req, res) {
   try {
     const data = req.body;
@@ -112,40 +110,24 @@ export const loginAdmin = async function (req, res) {
         .status(400)
         .json({ status: false, message: "Please provide details" });
     }
+
     if (!email) {
       return res
         .status(400)
         .json({ status: false, message: "Please provide email" });
     }
-    if (typeof email !== "string" || email.trim().length === 0) {
-      return res.status(400).json({ status: false, msg: "Enter valid email" });
-    }
-    if (!email.match(emailValidation)) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Please provide valid email" });
-    }
+   
     if (!password) {
       return res
         .status(400)
         .json({ status: false, message: "Please provide password" });
-    }
-    if (typeof password !== "string" || password.trim().length === 0) {
-      return res
-        .status(400)
-        .json({ status: false, msg: "Enter valid password" });
-    }
-    if (!password.match(passwordValidation)) {
-      return res
-        .status(400)
-        .json({ status: false, message: "Please provide valid password" });
     }
 
     const user = await AdminModel.findOne({ email: data.email });
     if (!user) {
       return res.status(422).json({
         status: false,
-        message: "Email not exist",
+        message: "Incorrect password or email",
       });
     }
 
@@ -161,14 +143,23 @@ export const loginAdmin = async function (req, res) {
     const expireTokenDate = new Date();
     expireTokenDate.setDate(expireTokenDate.getDate() + 1);
 
-    const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET, {
+    const payload = {
+       _id: user._id,
+       role: "Admin"
+    }
+    const token = await jwt.sign(payload, process.env.JWT_SECRET, {
       expiresIn: 86400,
+    });
+
+    res.cookie('jwtToken', token, {
+      httpOnly: true,
+      expires: expireTokenDate,
+      role: "Admin"
     });
 
     return res.status(201).json({
       status: true,
       message: "Login successfully",
-      role:user.role,
       Token: {
         usertoken: token,
         expiry: expireTokenDate,
