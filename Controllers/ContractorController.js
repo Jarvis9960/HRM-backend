@@ -1,10 +1,13 @@
 import ContractorModel from "../Models/ContractorModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
-
+import { generateRandomPassword } from "../Utils/PasswordUtil.js"
+import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer"
 const nameregex = /^[a-zA-Z_ ]{1,30}$/;
 const emailValidation = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
-// Create a new contractor
+
+// Create Contractor
 export const createContractor = async (req, res) => {
   try {
     const data = req.body
@@ -57,23 +60,115 @@ export const createContractor = async (req, res) => {
           .json({ status: false, message: "Please provide valid email" });
       };
 
-    // Check if the email is already registered
     const existingContractor = await ContractorModel.findOne({ email });
     if (existingContractor) {
       return res.status(400).json({ error: "Email already exists" });
     }
-
+    const password = generateRandomPassword();
     const savedContractor = await ContractorModel.create(data);
-    return res.status(201).json({status: true, data:savedContractor })
+    savedContractor.password = password;
+    await savedContractor.save()
+   
+    //Send the email to the contractor
+    const transporter = nodemailer.createTransport({
+      service: 'Gmail' ,
+      secure: true,
+      auth : {
+         user: process.env.EMAIL,
+         pass: process.env.PASS
+      },
+    });
+    
+    const mailOptions = {
+      from:"exactsshubham@gmail.com",
+      to: email,
+      subject: "Welcome to our platform",
+      text: `Dear${first_name},\n\nYou have successfully added as a contractor. Here are your login credentials:\n\nEmail: ${email}\nPassword: ${password}\n\nPlease use these credentials to log in our platform.\n\nBest regards,\nThe Admin Team`
+    }
 
+    transporter.sendMail(mailOptions, (error, info) => {
+      if(error) {
+        console.error('Error sending email: ', error);
+      } else {
+        console.log("Email sent", info.response)
+      }
+    }) 
+    return res.status(201).json({status: true, data:savedContractor })
   } catch (error) {
     res.status(500).json({ status: false, error: error.message });
   }
 };
 
+//Login Contractor
+export const loginContractor = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
+    if (!Object.keys(req.body).length > 0) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Please provide details" });
+    }
 
-// Update contractor's profile
+    if (!email) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Please provide email" });
+    }
+   
+    if (!password) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Please provide password" });
+    }
+
+    const contractor = await ContractorModel.findOne({ email });
+
+    if (!contractor) {
+      return res.status(404).json({
+        status: false,
+        message: "Invalid email or password."
+      });
+    }
+
+    if (contractor.password !== password) {
+      return res.status(401).json({
+        status: false,
+        message: "Invaild email or password."
+      });
+    }
+
+    const expireTokenDate = new Date();
+    expireTokenDate.setDate(expireTokenDate.getDate() + 1);
+
+    const payload = {
+       _id: contractor._id,
+       role: "Contractor"
+    }
+    const token = await jwt.sign(payload, process.env.JWT_SECRET, {
+      expiresIn: 86400,
+    });
+
+    res.cookie('jwtToken', token, {
+      httpOnly: true,
+      expires: expireTokenDate,
+      role: "Contractor"
+    });
+
+    return res.status(201).json({
+      status: true,
+      message: "Login successfully",
+      Token: {
+        usertoken: token,
+        expiry: expireTokenDate,
+      },
+    });
+  } catch (error) {
+    return res.status(500).json({ status: false, message: error.message });
+  }
+}
+
+//Update contractor's profile
 
 export const updatecontractorprofile = async (req, res) => {
   try {
@@ -188,5 +283,15 @@ export const updatecontractorprofile = async (req, res) => {
     res.status(201).json({ status: true, message: updatecontractorprofile });
   } catch (err) {
     res.status(500).json({ status: false, message: err.message });
+  }
+};
+
+//Get Contractors
+export const getContractor = async function (req, res) {
+  try {
+    const contractors = await ContractorModel.find();
+    return res.status(200).json({ status: true, data: contractors });
+  } catch (error) {
+    return res.status(500).json({ status: false, message: error.message });
   }
 };
