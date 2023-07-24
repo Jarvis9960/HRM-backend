@@ -92,4 +92,5 @@ const contractorSchema = new mongoose.Schema({
   });
 
  const ContractorProfileModel = mongoose.model("ContractorProfile", contractorSchema);
+
  export default ContractorProfileModel

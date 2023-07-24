@@ -20,7 +20,7 @@ const contractorSchema = new mongoose.Schema(
     },
     profileId: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Profile",
+      ref: "ContractorProfile",
     },
   },
   { timestamps: true }
