@@ -2,6 +2,7 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import path from "path";
 dotenv.config({ path: path.resolve("../config.env") });
+import AdminModel from "../Models/AdminModel.js";
 
 export const tokenCheckadmin = async (req, res, next) => {
   let token;
@@ -18,8 +19,9 @@ export const tokenCheckadmin = async (req, res, next) => {
 
       const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+      const checkAdmin = await AdminModel.findOne({_id: decoded._id}).select("-password");
 
-      req.user = decoded._id;
+      req.user = checkAdmin;
      
       next();
     } catch (error) {
