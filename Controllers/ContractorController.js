@@ -145,7 +145,7 @@ export const loginContractor = async (req, res) => {
        _id: contractor._id,
        role: "Contractor"
     }
-    const token = await jwt.sign(payload, process.env.JWT_SECRET, {
+    const token = await jwt.sign(payload, process.env.JWT_SECRET2, {
       expiresIn: 86400,
     });
 
@@ -217,7 +217,7 @@ export const updatecontractorprofile = async (req, res) => {
       !bankAccNo ||
       !ifscCode
     ) {
-      return res.status(422).json({
+      return res.status(400).json({
         status: "false",
         message: "Please fill all the required fields",
       });
@@ -226,7 +226,7 @@ export const updatecontractorprofile = async (req, res) => {
       !actualName.match(nameregex)
     ) {
       return res
-        .status(422)
+        .status(400)
         .json({ status: false, message: "Please provide valid name" });
     }
 
@@ -237,26 +237,30 @@ export const updatecontractorprofile = async (req, res) => {
       ActualAadharNo: actualAadharNo,
     });
 
-    // if (sameActualPanNo || sameActualAadhar) {
-    //   res
-    //     .status(422)
-    //     .json({ status: false, message: "Actual id already exist" });
-    // }
+    if (sameActualPanNo || sameActualAadhar) {
+      res
+        .status(400)
+        .json({ status: false, message: "Actual id already exist" });
+    }
 
     const sameBeneficiaryAadhar = await ContractorProfileModel.findOne({
       BeneficiaryAadharNo: beneficiaryAadharNo,
     });
     const sameBeneficiaryPan = await ContractorProfileModel.findOne({ BeneficiaryPanNo: beneficiaryPanNo});
 
-    // if(sameBeneficiaryAadhar || sameBeneficiaryPan){
-    //   res
-    //   .status(422)
-    //   .json({ status: false, message: "Beneficiary id already exist" });
-    // }
+    if(sameBeneficiaryAadhar || sameBeneficiaryPan){
+      res
+      .status(400)
+      .json({ status: false, message: "Beneficiary id already exist" });
+    }
     const actualPanLink = files.actualPanImage.path
     const actualAadharLink = files.actualAdharImage.path
     const beneficiaryPanLink = files.beneficiaryPanImage.path
     const beneficiaryAadharLink = files.beneficiaryAadharImage.path
+
+    if(!actualPanLink || !actualAadharLink || !beneficiaryPanLink || !beneficiaryAadharLink){
+      return res.status(400).json({status: false, message: "Please upload all required files (actualPanImage, actualAdharImage, beneficiaryPanImage, beneficiaryAadharImage)"})
+    }
 
     const updatecontractorprofile = await ContractorProfileModel.create({
       ActualName: actualName,
@@ -284,7 +288,33 @@ export const updatecontractorprofile = async (req, res) => {
       EmergencyContactRelation: emergencyContactRelation,
       EmergencyContactNumber: emergencyContactNumber,
     });
-    res.status(201).json({ status: true, message: updatecontractorprofile });
+
+    const profileId = await ContractorModel.findByIdAndUpdate({_id:req.user}, {profileId:updatecontractorprofile})
+
+    // Send email notification to admin
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASS,
+      },
+    });
+
+    const mailOptions = {
+      from:"exactsshubham@gmail.com",
+      to:  "exactsshubham@gmail.com",
+      subject: "Contractor Profile Updated",
+      text: `The profile for contractor ${updatecontractorprofile.ActualName} with aadharNumber ${updatecontractorprofile.ActualAadharNo} has been updated.`,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        console.error("Error sending email: ", error);
+      } else {
+        console.log("Email sent", info.response);
+      }
+    });
+    res.status(201).json({ status: true, message: "Successfully Updated" });
   } catch (err) {
     res.status(500).json({ status: false, message: err.message });
   }
@@ -293,9 +323,82 @@ export const updatecontractorprofile = async (req, res) => {
 //Get Contractors
 export const getContractor = async function (req, res) {
   try {
-    const contractors = await ContractorModel.find();
-    return res.status(200).json({ status: true, data: contractors });
+
+    const page = req.query.page || 1;
+    const limit = 2;
+
+    const totalContractors = await ContractorModel.count();
+    const totalPages = Math.ceil(totalContractors/limit);
+
+    const contractors = await ContractorModel.find()
+    .skip((page - 1) * limit)
+    .limit(limit)
+
+    if(!contractors.length>0){
+      return res.status(404).json({status: false, message: "Contractors not found"})
+    }
+    return res.status(200).json({ status: true, data: contractors, page: page, totalPages: totalPages, totalContractors: totalContractors });
   } catch (error) {
     return res.status(500).json({ status: false, message: error.message });
   }
 };
+
+// Approve Contractor
+export const approveContractor = async (req, res) => {
+  try{
+
+    let {contractorId, isApproved} = req.body;
+
+    if(!contractorId || !isApproved){
+      return res.status(422).json({status: false, message: 'Please provide valid details'})
+    }
+
+    const contractorExist = await ContractorModel.findOne({_id: contractorId})
+    if(!contractorExist){
+      return res.status(404).json({status: false, message: 'Contractor not found'})
+    }
+
+    const approvedContactor = await ContractorModel.updateOne(
+      {_id : contractorId},
+      {$set: {IsApproved : isApproved}}
+    )
+    if(approveContractor){
+    return res.status(201).json({status: true, message: "Successfully approved contractor"})
+    }
+    
+  } catch (err) {
+    return res.status(500).json({status: false, message:'Something went wrong'})
+  }
+}
+
+//Get Contractor Data with its Profile
+
+export const getdetailsofContractor = async function (req, res) {
+
+  try {
+
+    let { contractorId } = req.query;
+    if (!contractorId) {
+      return res.status(400).send({ status: false, message: "Please provide contractorId" })
+    };
+
+    let contractor = await ContractorModel.findOne({ _id: contractorId})
+    if (!contractor) {
+      return res.status(404).send({ status: false, message: "This contractor does not exist" });
+    }
+    
+    let contractorProfileData = await ContractorProfileModel.find({ _id: contractor.profileId })
+
+    if (contractorProfileData.length == 0) {
+      var x = "This contractor profile does not exist";
+    } else {
+      var x = contractorProfileData;
+    }
+
+    contractor._doc.contractorProfileData = x  
+    return res.status(200).send({ status: true, data: contractor })
+
+  } catch (error) {
+    res.status(500).send({ status: false, message: error.message })
+  }
+}
