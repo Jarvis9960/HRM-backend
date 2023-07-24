@@ -69,7 +69,10 @@ const contractorSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
-   
+   JoinDate: {
+      type: Date,
+      required: true,
+   },
     Nationality: {
       type: String,
       required: true,
@@ -89,6 +92,10 @@ const contractorSchema = new mongoose.Schema({
       type: Number,
       required: true,
     },
+    IsApproved: {
+        type: Boolean,
+        default: false,
+    }
   });
 
  const ContractorProfileModel = mongoose.model("ContractorProfile", contractorSchema);
