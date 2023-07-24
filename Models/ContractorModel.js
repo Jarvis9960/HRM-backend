@@ -21,6 +21,7 @@ const contractorSchema = new mongoose.Schema(
     profileId: {
       type: mongoose.Schema.Types.ObjectId,
       ref: "Profile",
+      default: null,
     },
   },
   { timestamps: true }

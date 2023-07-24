@@ -69,7 +69,10 @@ const contractorSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
-   
+   JoinDate: {
+      type: Date,
+      required: true,
+   },
     Nationality: {
       type: String,
       required: true,
