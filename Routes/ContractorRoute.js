@@ -8,7 +8,7 @@ import {
   approveContractor,
   getdetailsofContractor,
 } from "../Controllers/ContractorController.js";
-import { storage, checkFileType } from "../Middlewares/MulterUpload.js";
+import { storage, checkFileType } from "../Middlewares/multerMiddleware.js";
 import { tokenCheckadmin } from "../Middlewares/tokenCheckadmin .js";
 import { tokenCheckContractor } from "../Middlewares/tokenCheckContractor.js";
 import multer from "multer";
