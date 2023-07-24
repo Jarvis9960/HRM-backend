@@ -8,7 +8,7 @@ const __dirname = dirname(fileName);
 
 export const storage = multer.diskStorage({
     destination: function (req, file, cb) {
-      cb(null, path.join(__dirname, "../public/uploads/lead"));
+      cb(null, path.join(__dirname, "../Public/uploads"));
     },
     filename: function (req, file, cb) {
       cb(
@@ -29,4 +29,3 @@ export function checkFileType(file, cb) {
     cb("Images only!"); // custom this message to fit your needs
   }
 }
-
