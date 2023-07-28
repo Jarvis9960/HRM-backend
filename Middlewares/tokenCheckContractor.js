@@ -4,7 +4,7 @@ import path from "path";
 dotenv.config({ path: path.resolve("../config.env") });
 import ContractorModel from "../Models/ContractorModel.js";
 
-export const tokenCheckContractor = async (req, res, next) => {
+export const tokenCheckcontractor = async (req, res, next) => {
   let token;
   if (
     req.headers.authorization &&

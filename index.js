@@ -7,6 +7,7 @@ dotenv.config({ path: path.resolve("./config.env") });
 import adminRoute from "./Routes/AdminRoute.js";
 import contractorRoute from "./Routes/ContractorRoute.js";
 import cookieParser from 'cookie-parser';
+import timesheetRoute from './Routes/TimesheetRoute.js';
 
 const app = express();
 
@@ -14,7 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use(cors({ origin: "http://localhost:3000" }));
+app.use(cors({ origin: "http://localhost:5173" }));
 
 // database connection function
 connectDb()
@@ -27,6 +28,7 @@ connectDb()
 
 app.use("/api", adminRoute);
 app.use("/api", contractorRoute);
+app.use("/api", timesheetRoute)
 
 
 // app to listen on port function

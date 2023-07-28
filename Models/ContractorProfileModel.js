@@ -95,8 +95,12 @@ const contractorSchema = new mongoose.Schema({
     IsApproved: {
         type: Boolean,
         default: false,
-    }
-  });
+    },
+    IsDecline: {
+        type: Boolean,
+        default: false,
+    },
+  }, { timestamps: true });
 
  const ContractorProfileModel = mongoose.model("ContractorProfile", contractorSchema);
 
