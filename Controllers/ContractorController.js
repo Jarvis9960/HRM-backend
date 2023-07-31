@@ -238,11 +238,23 @@ export const updatecontractorprofile = async (req, res) => {
       ActualAadharNo: actualAadharNo,
     });
 
-    if (sameActualPanNo || sameActualAadhar) {
-      res
+    if (sameActualPanNo ) {
+      return res
         .status(400)
-        .json({ status: false, message: "Actual id already exist" });
+        .json({
+          status: false,
+          message: "ActualPanNo already exist",
+        });
     }
+
+    if (sameActualAadhar ) {
+      return res
+        .status(400)
+        .json({
+          status: false,
+          message: "ActualAadharNo already exist",
+        });
+    } 
 
     const sameBeneficiaryAadhar = await ContractorProfileModel.findOne({
       BeneficiaryAadharNo: beneficiaryAadharNo,
@@ -251,13 +263,18 @@ export const updatecontractorprofile = async (req, res) => {
       BeneficiaryPanNo: beneficiaryPanNo,
     });
 
-    if (sameBeneficiaryAadhar || sameBeneficiaryPan) {
-      res
+    if (sameBeneficiaryAadhar) {
+      return res
         .status(400)
-        .json({ status: false, message: "Beneficiary id already exist" });
+        .json({ status: false, message: "BeneficaiaryAadharNo already exist" });
     }
-    console.log(files);
 
+    if (sameBeneficiaryPan) {
+      return res
+        .status(400)
+        .json({ status: false, message: "BeneficaiaryPanNo already exist" });
+    }
+    
     const actualPanLink = files.actualPanImage[0].path;
     const actualAadharLink = files.actualAdharImage[0].path;
     const beneficiaryPanLink = files.beneficiaryPanImage[0].path;
@@ -346,13 +363,13 @@ export const updatecontractorprofile = async (req, res) => {
 export const getContractor = async function (req, res) {
   try {
     const page = req.query.page || 1;
-    const limit = 2;
+    const limit = 9;
 
     const totalContractors = await ContractorModel.count();
     const totalPages = Math.ceil(totalContractors / limit);
 
     const contractors = await ContractorModel.find()
-      .populate("profileId")
+    
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -373,7 +390,50 @@ export const getContractor = async function (req, res) {
   }
 };
 
-// Approve Contractor
+//Search Query in Contractors
+export const searchContractors = async (req, res) => {
+  try {
+    const { searchQuery } = req.query;
+
+    if (!searchQuery) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Please provide a search query" });
+    }
+
+    // Preparing the regular expression pattern for the search query (case-insensitive)
+    const searchPattern = new RegExp(searchQuery, "i");
+
+    const contractors = await ContractorModel.find({
+      $or: [
+        { first_name: { $regex: searchPattern } },
+        { last_name: { $regex: searchPattern } },
+        { email: { $regex: searchPattern } },
+      ],
+    });
+
+    if (contractors.length === 0) {
+      return res
+        .status(404)
+        .json({
+          status: false,
+          message: "No contractors found for the given search query",
+        });
+    }
+
+    res.status(200).json({ status: true, data: contractors });
+  } catch (error) {
+    res
+      .status(500)
+      .json({
+        status: false,
+        message: "Something went wrong",
+        error: error.message,
+      });
+  }
+};
+
+// Approve Contractor Profile
 export const approveContractor = async (req, res) => {
   try {
     let { contractorId } = req.body;
@@ -410,8 +470,44 @@ export const approveContractor = async (req, res) => {
   }
 };
 
-//Get Contractor Data with its Profile
+//Decline Contractor Profile
+export const declineContractor = async (req, res) => {
+  try {
+    let { contractorId } = req.body;
 
+    if (!contractorId) {
+      return res
+        .status(422)
+        .json({ status: false, message: "Please provide valid details" });
+    }
+
+    const contractorExist = await ContractorModel.findOne({
+      _id: contractorId,
+    });
+    if (!contractorExist) {
+      return res
+        .status(404)
+        .json({ status: false, message: "Contractor not found" });
+    }
+
+    const approvedContactor = await ContractorProfileModel.updateOne(
+      { _id: contractorExist.profileId },
+      { $set: { IsDecline: true } }
+    );
+
+    if (approvedContactor.acknowledged) {
+      return res
+        .status(201)
+        .json({ status: true, message: "Successfully decline contractor" });
+    }
+  } catch (err) {
+    return res
+      .status(500)
+      .json({ status: false, message: "Something went wrong" });
+  }
+};
+
+//Get Contractor Data with its Profile for Admin
 export const getdetailsofContractor = async function (req, res) {
   try {
     let { contractorId } = req.query;
@@ -421,17 +517,50 @@ export const getdetailsofContractor = async function (req, res) {
         .send({ status: false, message: "Please provide contractorId" });
     }
 
-    let contractor = await ContractorModel.findOne({ _id: contractorId }).populate("profileId");
+    let contractor = await ContractorModel.findOne({
+      _id: contractorId,
+    }).populate("profileId");
     if (!contractor) {
       return res
         .status(404)
-        .send({ status: false, message: "This contractor does not exist" });
+        .send({
+          status: false,
+          message: "This contractor does not exist",
+        });
     }
 
     // let contractorProfileData = await ContractorProfileModel.find({ _id: contractor.profileId })
 
     // if (contractorProfileData.length == 0) {
     //   var x = "This contractor profile does not exist";
+    // } else {
+    //   var x = contractorProfileData;
+    // }
+
+    // contractor._doc.contractorProfileData = x
+    return res.status(200).send({ status: true, data: contractor });
+  } catch (error) {
+    res.status(500).send({ status: false, message: error.message });
+  }
+};
+
+//Get Contractor Data with its Profile for particular Contractor
+export const getowndetailsofContractor = async function (req, res) {
+  try {
+    let contractorId  = req.user._id;
+
+    let contractor = await ContractorModel.findOne({
+      _id: contractorId,
+    }).populate("profileId");
+    if (!contractor) {
+      return res
+        .status(404)
+        .send({ status: false, message: "This contractor does not exist" });
+    }
+    // let contractorProfileData = await ContractorProfileModel.find({ _id: contractor.profileId })
+
+    // if (contractorProfileData.length == 0) {
+    //   var x = "Your profile does not exist";
     // } else {
     //   var x = contractorProfileData;
     // }

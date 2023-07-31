@@ -7,10 +7,14 @@ import {
   getContractor,
   approveContractor,
   getdetailsofContractor,
+  searchContractors,
+  getowndetailsofContractor,
+  declineContractor,
 } from "../Controllers/ContractorController.js";
+
 import { storage, checkFileType } from "../Middlewares/multerMiddleware.js";
 import { tokenCheckadmin } from "../Middlewares/tokenCheckadmin .js";
-import { tokenCheckContractor } from "../Middlewares/tokenCheckContractor.js";
+import { tokenCheckcontractor } from "../Middlewares/tokenCheckcontractor.js";
 import multer from "multer";
 
 const multerUpload = multer({
@@ -30,14 +34,17 @@ const multerUploadfiles = multerUpload.fields([
 router.post("/addcontractor", tokenCheckadmin, createContractor);
 router.get("/getContractor", tokenCheckadmin, getContractor);
 router.patch("/approveContractor", tokenCheckadmin, approveContractor);
+router.patch("/declineContractor", tokenCheckadmin, declineContractor);
 router.get("/getdetailsofContractor", tokenCheckadmin, getdetailsofContractor);
+router.get("/searchContractors", tokenCheckadmin, searchContractors)
 
 router.post("/loginContractor", loginContractor);
 router.post(
   "/updatecontractorprofile",
-  tokenCheckContractor,
+  tokenCheckcontractor,
   multerUploadfiles,
   updatecontractorprofile
 );
+router.get("/getownDetails", tokenCheckcontractor, getowndetailsofContractor);
 
 export default router;
