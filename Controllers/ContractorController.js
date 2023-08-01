@@ -473,9 +473,9 @@ export const approveContractor = async (req, res) => {
 //Decline Contractor Profile
 export const declineContractor = async (req, res) => {
   try {
-    let { contractorId } = req.body;
+    let { contractorId, feedback } = req.body;
 
-    if (!contractorId) {
+    if (!contractorId || !feedback) {
       return res
         .status(422)
         .json({ status: false, message: "Please provide valid details" });
@@ -490,12 +490,37 @@ export const declineContractor = async (req, res) => {
         .json({ status: false, message: "Contractor not found" });
     }
 
-    const approvedContactor = await ContractorProfileModel.updateOne(
+    const approvedContractor = await ContractorProfileModel.updateOne(
       { _id: contractorExist.profileId },
       { $set: { IsDecline: true } }
     );
 
-    if (approvedContactor.acknowledged) {
+    if (approvedContractor.acknowledged) {
+      // Send email to the contractor
+      const transporter = nodemailer.createTransport({
+        service: "Gmail",
+        secure: true,
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: "exactsshubham@gmail.com",
+        to: contractorExist.email,
+        subject: "Contractor Updated Application Declined",
+        text: `Dear Contractor,\n\nWe regret to inform you that your updated profile has been declined.\n\nFeedback: ${feedback}\n\nThank you.\n\nSincerely, Admin`,
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending email:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+
       return res
         .status(201)
         .json({ status: true, message: "Successfully decline contractor" });
@@ -506,6 +531,7 @@ export const declineContractor = async (req, res) => {
       .json({ status: false, message: "Something went wrong" });
   }
 };
+
 
 //Get Contractor Data with its Profile for Admin
 export const getdetailsofContractor = async function (req, res) {
@@ -519,7 +545,7 @@ export const getdetailsofContractor = async function (req, res) {
 
     let contractor = await ContractorModel.findOne({
       _id: contractorId,
-    }).populate("profileId");
+    }).populate("profileId", "-password");
     if (!contractor) {
       return res
         .status(404)
@@ -528,16 +554,7 @@ export const getdetailsofContractor = async function (req, res) {
           message: "This contractor does not exist",
         });
     }
-
-    // let contractorProfileData = await ContractorProfileModel.find({ _id: contractor.profileId })
-
-    // if (contractorProfileData.length == 0) {
-    //   var x = "This contractor profile does not exist";
-    // } else {
-    //   var x = contractorProfileData;
-    // }
-
-    // contractor._doc.contractorProfileData = x
+    
     return res.status(200).send({ status: true, data: contractor });
   } catch (error) {
     res.status(500).send({ status: false, message: error.message });
@@ -551,21 +568,13 @@ export const getowndetailsofContractor = async function (req, res) {
 
     let contractor = await ContractorModel.findOne({
       _id: contractorId,
-    }).populate("profileId");
+    }).populate("profileId", "-password");
     if (!contractor) {
       return res
         .status(404)
         .send({ status: false, message: "This contractor does not exist" });
     }
-    // let contractorProfileData = await ContractorProfileModel.find({ _id: contractor.profileId })
-
-    // if (contractorProfileData.length == 0) {
-    //   var x = "Your profile does not exist";
-    // } else {
-    //   var x = contractorProfileData;
-    // }
-
-    // contractor._doc.contractorProfileData = x
+ 
     return res.status(200).send({ status: true, data: contractor });
   } catch (error) {
     res.status(500).send({ status: false, message: error.message });
