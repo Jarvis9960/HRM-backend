@@ -393,7 +393,7 @@ export const getContractor = async function (req, res) {
 //Search Query in Contractors
 export const searchContractors = async (req, res) => {
   try {
-    const { searchQuery } = req.query;
+    const { searchQuery, page = 1, limit = 9 } = req.query; 
 
     if (!searchQuery) {
       return res
@@ -401,8 +401,18 @@ export const searchContractors = async (req, res) => {
         .json({ status: false, message: "Please provide a search query" });
     }
 
-    // Preparing the regular expression pattern for the search query (case-insensitive)
     const searchPattern = new RegExp(searchQuery, "i");
+
+    const totalCount = await ContractorModel.countDocuments({
+      $or: [
+        { first_name: { $regex: searchPattern } },
+        { last_name: { $regex: searchPattern } },
+        { email: { $regex: searchPattern } },
+      ],
+    });
+
+    const totalPages = Math.ceil(totalCount / limit);
+    const skip = (page - 1) * limit;
 
     const contractors = await ContractorModel.find({
       $or: [
@@ -410,7 +420,9 @@ export const searchContractors = async (req, res) => {
         { last_name: { $regex: searchPattern } },
         { email: { $regex: searchPattern } },
       ],
-    });
+    })
+      .skip(skip)
+      .limit(limit);
 
     if (contractors.length === 0) {
       return res
@@ -421,9 +433,18 @@ export const searchContractors = async (req, res) => {
         });
     }
 
-    res.status(200).json({ status: true, data: contractors });
+   return res.status(200).json({
+      status: true,
+      data: contractors,
+      pageInfo: {
+        totalResults: totalCount,
+        totalPages,
+        currentPage: page,
+        limit,
+      },
+    });
   } catch (error) {
-    res
+   return res
       .status(500)
       .json({
         status: false,
@@ -432,6 +453,7 @@ export const searchContractors = async (req, res) => {
       });
   }
 };
+;
 
 // Approve Contractor Profile
 export const approveContractor = async (req, res) => {
