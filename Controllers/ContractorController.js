@@ -1,10 +1,14 @@
+import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
+import nodemailer from "nodemailer";
+import randomString from "randomstring";
+const nameregex = /^[a-zA-Z_ ]{1,30}$/;
+const emailValidation = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+const passwordValidation =
+  /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*])[A-Za-z\d!@#$%^&*]{9,}$/;
 import ContractorModel from "../Models/ContractorModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import { generateRandomPassword } from "../Utils/PasswordUtil.js";
-import jwt from "jsonwebtoken";
-import nodemailer from "nodemailer";
-const nameregex = /^[a-zA-Z_ ]{1,30}$/;
-const emailValidation = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
 
 // Create Contractor
 export const createContractor = async (req, res) => {
@@ -65,9 +69,11 @@ export const createContractor = async (req, res) => {
     if (existingContractor) {
       return res.status(400).json({ error: "Email already exists" });
     }
-    const password = generateRandomPassword();
+    const plainTextPassword = generateRandomPassword();
+    const salt = await bcrypt.genSaltSync(10);
+    const securePassword = await bcrypt.hashSync(plainTextPassword, salt);
     const savedContractor = await ContractorModel.create(data);
-    savedContractor.password = password;
+    savedContractor.password = securePassword;
     await savedContractor.save();
 
     //Send the email to the contractor
@@ -103,6 +109,7 @@ export const createContractor = async (req, res) => {
 //Login Contractor
 export const loginContractor = async (req, res) => {
   try {
+    const data = req.body;
     const { email, password } = req.body;
 
     if (!Object.keys(req.body).length > 0) {
@@ -132,10 +139,12 @@ export const loginContractor = async (req, res) => {
       });
     }
 
-    if (contractor.password !== password) {
-      return res.status(401).json({
+    // password compare or not
+    const compare = await bcrypt.compare(data.password, contractor.password);
+    if (!compare) {
+      return res.status(422).json({
         status: false,
-        message: "Invaild email or password.",
+        message: "Incorrect password or email",
       });
     }
 
@@ -238,23 +247,19 @@ export const updatecontractorprofile = async (req, res) => {
       ActualAadharNo: actualAadharNo,
     });
 
-    if (sameActualPanNo ) {
-      return res
-        .status(400)
-        .json({
-          status: false,
-          message: "ActualPanNo already exist",
-        });
+    if (sameActualPanNo) {
+      return res.status(400).json({
+        status: false,
+        message: "ActualPanNo already exist",
+      });
     }
 
-    if (sameActualAadhar ) {
-      return res
-        .status(400)
-        .json({
-          status: false,
-          message: "ActualAadharNo already exist",
-        });
-    } 
+    if (sameActualAadhar) {
+      return res.status(400).json({
+        status: false,
+        message: "ActualAadharNo already exist",
+      });
+    }
 
     const sameBeneficiaryAadhar = await ContractorProfileModel.findOne({
       BeneficiaryAadharNo: beneficiaryAadharNo,
@@ -274,7 +279,7 @@ export const updatecontractorprofile = async (req, res) => {
         .status(400)
         .json({ status: false, message: "BeneficaiaryPanNo already exist" });
     }
-    
+
     const actualPanLink = files.actualPanImage[0].path;
     const actualAadharLink = files.actualAdharImage[0].path;
     const beneficiaryPanLink = files.beneficiaryPanImage[0].path;
@@ -369,7 +374,7 @@ export const getContractor = async function (req, res) {
     const totalPages = Math.ceil(totalContractors / limit);
 
     const contractors = await ContractorModel.find()
-    
+
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -393,7 +398,7 @@ export const getContractor = async function (req, res) {
 //Search Query in Contractors
 export const searchContractors = async (req, res) => {
   try {
-    const { searchQuery, page = 1, limit = 9 } = req.query; 
+    const { searchQuery, page = 1, limit = 9 } = req.query;
 
     if (!searchQuery) {
       return res
@@ -425,15 +430,13 @@ export const searchContractors = async (req, res) => {
       .limit(limit);
 
     if (contractors.length === 0) {
-      return res
-        .status(404)
-        .json({
-          status: false,
-          message: "No contractors found for the given search query",
-        });
+      return res.status(404).json({
+        status: false,
+        message: "No contractors found for the given search query",
+      });
     }
 
-   return res.status(200).json({
+    return res.status(200).json({
       status: true,
       data: contractors,
       pageInfo: {
@@ -444,17 +447,13 @@ export const searchContractors = async (req, res) => {
       },
     });
   } catch (error) {
-   return res
-      .status(500)
-      .json({
-        status: false,
-        message: "Something went wrong",
-        error: error.message,
-      });
+    return res.status(500).json({
+      status: false,
+      message: "Something went wrong",
+      error: error.message,
+    });
   }
 };
-;
-
 // Approve Contractor Profile
 export const approveContractor = async (req, res) => {
   try {
@@ -554,7 +553,6 @@ export const declineContractor = async (req, res) => {
   }
 };
 
-
 //Get Contractor Data with its Profile for Admin
 export const getdetailsofContractor = async function (req, res) {
   try {
@@ -569,14 +567,12 @@ export const getdetailsofContractor = async function (req, res) {
       _id: contractorId,
     }).populate("profileId", "-password");
     if (!contractor) {
-      return res
-        .status(404)
-        .send({
-          status: false,
-          message: "This contractor does not exist",
-        });
+      return res.status(404).send({
+        status: false,
+        message: "This contractor does not exist",
+      });
     }
-    
+
     return res.status(200).send({ status: true, data: contractor });
   } catch (error) {
     res.status(500).send({ status: false, message: error.message });
@@ -586,7 +582,7 @@ export const getdetailsofContractor = async function (req, res) {
 //Get Contractor Data with its Profile for particular Contractor
 export const getowndetailsofContractor = async function (req, res) {
   try {
-    let contractorId  = req.user._id;
+    let contractorId = req.user._id;
 
     let contractor = await ContractorModel.findOne({
       _id: contractorId,
@@ -596,9 +592,159 @@ export const getowndetailsofContractor = async function (req, res) {
         .status(404)
         .send({ status: false, message: "This contractor does not exist" });
     }
- 
+
     return res.status(200).send({ status: true, data: contractor });
   } catch (error) {
     res.status(500).send({ status: false, message: error.message });
+  }
+};
+
+export const contractorForgotPassword = async (req, res) => {
+  try {
+    const email = req.body.email;
+
+    if (!email) {
+      return res.status(422).json({ message: "Please provide an email" });
+    }
+
+    const existingContractor = await ContractorModel.findOne({ email: email });
+
+    if (!existingContractor) {
+      return res
+        .status(422)
+        .json({ message: "Contractor doesn't exist. Please register first" });
+    }
+
+    const randomStringToken = randomString.generate().trim();
+
+    const response = await ContractorModel.updateOne(
+      { email: email },
+      { $set: { forgotPassToken: randomStringToken } },
+      { new: true }
+    );
+
+    const transporter = nodemailer.createTransport({
+      service: "Gmail",
+      secure: true,
+      auth: {
+        user: process.env.EMAIL,
+        pass: process.env.PASS,
+      },
+    });
+
+    let info = await transporter.sendMail({
+      from: "exactsshubham@gmail.com",
+      to: email,
+      subject: "Reset Password",
+      html: `<p>Hello, You requested to change your password. Here is the link for resetting your password. <a href='http://localhost:3000/resetpassword/${randomStringToken}'>Reset your password</a></p>`,
+    });
+
+    if (info.accepted[0] === email && response.acknowledged === true) {
+      return res.status(200).json({
+        status: true,
+        message: "Email successfully sent for password reset",
+        resetToken: randomStringToken,
+      });
+    } else {
+      throw new Error("Something went wrong");
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      message: "Something went wrong. We couldn't process the reset link.",
+    });
+  }
+};
+
+export const contractorResetPassword = async (req, res) => {
+  try {
+    const resetPassToken = req.params.resetPassToken;
+    const password = req.body.password;
+    const cpassword = req.body.cpassword;
+
+    if (!resetPassToken) {
+      return res.status(422).json({
+        status: false,
+        message:
+          "Token is not provided. Generate a new link for resetting the password",
+      });
+    }
+
+    if (typeof password !== "string" || password.trim().length === 0) {
+      return res
+        .status(400)
+        .json({ status: false, msg: "Enter valid password" });
+    }
+
+    if (!password.match(passwordValidation)) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Please provide valid password" });
+    }
+
+    if (!password || !cpassword) {
+      return res.status(422).json({
+        status: false,
+        message: "Please provide a password and confirm password",
+      });
+    }
+
+    const contractorToReset = await ContractorModel.findOne({
+      forgotPassToken: resetPassToken,
+    });
+
+    if (!contractorToReset) {
+      return res.status(422).json({
+        status: false,
+        message: "Token is expired. Please generate a new reset link.",
+      });
+    } else {
+      if (password !== cpassword) {
+        return res.status(422).json({
+          status: false,
+          message:
+            "Password and confirm password do not match. Please check again.",
+        });
+      }
+
+      const verifyPassword = bcrypt.compareSync(
+        password,
+        contractorToReset.password
+      );
+
+      if (verifyPassword) {
+        return res.status(422).json({
+          status: false,
+          message: "The new password is the same as the old password.",
+        });
+      }
+      let plainTextPassword = password;
+
+      const salt = await bcrypt.genSaltSync(10);
+
+      const securePassword = await bcrypt.hashSync(plainTextPassword, salt);
+
+      const updatedContractor = await ContractorModel.updateOne(
+        { forgotPassToken: resetPassToken },
+        { $set: { password: securePassword, forgotPassToken: "" } }
+      );
+
+      if (updatedContractor.acknowledged === true) {
+        return res
+          .status(200)
+          .json({
+            status: true,
+            message: "Password changed successfully",
+            newPassword: plainTextPassword,
+          });
+      }
+    }
+  } catch (error) {
+    console.error(error);
+    return res.status(500).json({
+      status: false,
+      message: "Something went wrong. Please reset your password again.",
+    });
   }
 };

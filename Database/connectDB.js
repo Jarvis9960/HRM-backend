@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const connectDb = () => {
   try {
-    let connectionString = "mongodb+srv://ShubhamChaturvedi:9555047172@mongodbwithshubham.z3dowao.mongodb.net/HRMshubham";
+    let connectionString = process.env.DATABASE_URL;
 
     if (!connectionString) {
       throw new Error("Connection string is giving undefined");

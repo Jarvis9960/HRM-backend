@@ -15,7 +15,22 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
 
-app.use(cors({ origin: "http://localhost:5173" }));
+const allowedOrigins = [
+  "http://localhost:5173",
+  "http://localhost:4000",
+  "http://localhost:5000",
+  "http://localhost:6000"
+];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    if (allowedOrigins.includes(origin) || !origin) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  }
+}));
 
 // database connection function
 connectDb()
