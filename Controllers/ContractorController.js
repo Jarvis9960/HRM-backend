@@ -748,3 +748,95 @@ export const contractorResetPassword = async (req, res) => {
     });
   }
 };
+
+export const reupdateContractorProfile = async (req, res) => {
+  try {
+    const profileId = req.user.profileId;
+    const updateData = req.body; 
+    const files = req.files; 
+
+    if (files) {
+      if (files.actualPanImage) {
+        updateData.ActualPanImageLink = files.actualPanImage[0].path;
+      }
+      if (files.actualAadharImage) {
+        updateData.ActualAadharImageLink = files.actualAadharImage[0].path;
+      }
+      if (files.beneficiaryPanImage) {
+        updateData.BeneficiaryPanImageLink = files.beneficiaryPanImage[0].path;
+      }
+      if (files.beneficiaryAadharImage) {
+        updateData.BeneficiaryAadharImageLink = files.beneficiaryAadharImage[0].path;
+      }
+    }
+    
+    updateData.actualName = req.body.actualName;
+    updateData.actualAadharNo = req.body.actualAadharNo;
+    updateData.actualPanNo = req.body.actualPanNo;
+    updateData.beneficiaryName = req.body.beneficiaryName;
+    updateData.beneficiaryAadharNo = req.body.beneficiaryAadharNo;
+    updateData.beneficiaryPanNo = req.body.beneficiaryPanNo;
+    updateData.bankName = req.body.bankName;
+    updateData.bankAccNo = req.body.bankAccNo;
+    updateData.ifscCode = req.body.ifscCode;
+    updateData.contractName = req.body.contractName;
+    updateData.joinDate = req.body.joinDate;
+    updateData.birthday = req.body.birthday;
+    updateData.address = req.body.address;
+    updateData.gender = req.body.gender;
+    updateData.reportTo = req.body.reportTo;
+    updateData.nationality = req.body.nationality;
+    updateData.religion = req.body.religion;
+    updateData.emergencyContactName = req.body.emergencyContactName;
+    updateData.emergencyContactRelation = req.body.emergencyContactRelation;
+    updateData.emergencyContactNumber = req.body.emergencyContactNumber;
+
+    const updatedProfile = await ContractorProfileModel.findByIdAndUpdate(
+      profileId,
+      updateData,
+      { new: true }
+    );
+
+    if (!updatedProfile) {
+      return res.status(404).json({
+        status: false,
+        message: "Contractor profile not updated",
+      });
+    }
+
+    if (updatedProfile.acknowledged) {
+      // Send email to the contractor
+      const transporter = nodemailer.createTransport({
+        service: "Gmail",
+        secure: true,
+        auth: {
+          user: process.env.EMAIL,
+          pass: process.env.PASS,
+        },
+      });
+
+      const mailOptions = {
+        from: "exactsshubham@gmail.com",
+        to: req.user.email,
+        subject: "Contractor Reupdated Profile",
+        text: `The profile for contractor ${updatedProfile.ActualName} with aadharNumber ${updatedProfile.ActualAadharNo} has been updated.`
+      };
+
+      transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+          console.error("Error sending email:", error);
+        } else {
+          console.log("Email sent:", info.response);
+        }
+      });
+    }
+
+    res.status(200).json({
+      status: true,
+      message: "Contractor profile successfully reupdated",
+      updatedProfile,
+    });
+  } catch (err) {
+    res.status(500).json({ status: false, message: err.message });
+  }
+};
