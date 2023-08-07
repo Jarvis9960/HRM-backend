@@ -209,7 +209,7 @@ export const forgotPassword = async (req, res) => {
         to: email, // list of receivers
         subject: "Reset-Password", // Subject line
         // text: "Here is the link to reset you password", // plain text body
-        html: `<p>Hello, You  requested to change your password in HRM. Here is the link for resetting your password</P>. <a href='http://localhost:3000/resetpassword/${randomStringToken}'>Reset your password</a>`, // html body
+        html: `<p>Hello, You  requested to change your password in HRM. Here is the link for resetting your password</P>.  <a href='http://localhost:5173/resetpassword/${randomStringToken}'>Reset your password</a>`, // html body
       });
 
       if (info.accepted[0] === email && response.acknowledged === true) {
