@@ -817,9 +817,9 @@ export const reupdateContractorProfile = async (req, res) => {
 
       const mailOptions = {
         from: "exactsshubham@gmail.com",
-        to: req.user.email,
+        to: "ankitfukte11@gmail.com",
         subject: "Contractor Reupdated Profile",
-        text: `The profile for contractor ${updatedProfile.ActualName} with aadharNumber ${updatedProfile.ActualAadharNo} has been updated.`
+        text: `The profile for contractor ${updatedProfile.ActualName} with aadharNumber ${updatedProfile.ActualAadharNo} has been reupdated.`
       };
 
       transporter.sendMail(mailOptions, (error, info) => {
