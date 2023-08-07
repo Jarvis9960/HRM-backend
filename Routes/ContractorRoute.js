@@ -10,6 +10,8 @@ import {
   searchContractors,
   getowndetailsofContractor,
   declineContractor,
+  contractorForgotPassword,
+  contractorResetPassword
 } from "../Controllers/ContractorController.js";
 
 import { storage, checkFileType } from "../Middlewares/multerMiddleware.js";
@@ -46,5 +48,7 @@ router.post(
   updatecontractorprofile
 );
 router.get("/getownDetails", tokenCheckcontractor, getowndetailsofContractor);
+router.post("/contractorForgotPassword", contractorForgotPassword);
+router.post("/contractorResetPassword/:resetPassToken", contractorResetPassword)
 
 export default router;

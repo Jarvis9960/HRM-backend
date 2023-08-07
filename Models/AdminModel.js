@@ -20,6 +20,10 @@ const adminSchema = new mongoose.Schema(
       required: true,
       minlength: 9,
     },
+    forgotPassToken:{
+      type: String,
+      default: ""
+    },
   },
   { timestamps: true }
 );

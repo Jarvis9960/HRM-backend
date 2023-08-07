@@ -22,6 +22,10 @@ const contractorSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.ObjectId,
       ref: "ContractorProfile",
     },
+    forgotPassToken:{
+      type: String,
+      default: ""
+    },
   },
   { timestamps: true }
 );
