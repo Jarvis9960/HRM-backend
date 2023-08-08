@@ -90,7 +90,8 @@ export const createContractor = async (req, res) => {
       from: "exactsshubham@gmail.com",
       to: email,
       subject: "Welcome to our platform",
-      text: `Dear${first_name},\n\nYou have successfully added as a contractor. Here are your login credentials:\n\nEmail: ${email}\nPassword: ${password}\n\nPlease use these credentials to log in our platform.\n\nBest regards,\nThe Admin Team`,
+      text: `Dear ${first_name},\n\nYou have been successfully added as a contractor. Here are your login credentials:\n\nEmail: ${email}\nPassword: ${plainTextPassword}\n\nPlease use these credentials to log in to our platform.\n\nBest regards,\nThe Admin Team`,
+
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -636,7 +637,7 @@ export const contractorForgotPassword = async (req, res) => {
       from: "exactsshubham@gmail.com",
       to: email,
       subject: "Reset Password",
-      html: `<p>Hello, You requested to change your password. Here is the link for resetting your password. <a href='http://localhost:3000/resetpassword/${randomStringToken}'>Reset your password</a></p>`,
+      html: `<p>Hello, You requested to change your password. Here is the link for resetting your password. <a href='http://localhost:4000/resetpassword/${randomStringToken}'>Reset your password</a></p>`,
     });
 
     if (info.accepted[0] === email && response.acknowledged === true) {
