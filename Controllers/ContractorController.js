@@ -770,7 +770,7 @@ export const reupdateContractorProfile = async (req, res) => {
         updateData.BeneficiaryAadharImageLink = files.beneficiaryAadharImage[0].path;
       }
     }
-    
+
     updateData.actualName = req.body.actualName;
     updateData.actualAadharNo = req.body.actualAadharNo;
     updateData.actualPanNo = req.body.actualPanNo;
@@ -791,6 +791,47 @@ export const reupdateContractorProfile = async (req, res) => {
     updateData.emergencyContactName = req.body.emergencyContactName;
     updateData.emergencyContactRelation = req.body.emergencyContactRelation;
     updateData.emergencyContactNumber = req.body.emergencyContactNumber;
+
+    const sameActualPanNo = await ContractorProfileModel.findOne({
+      ActualPanNo: updateData.actualPanNo,
+    });
+
+    const sameActualAadhar = await ContractorProfileModel.findOne({
+      ActualAadharNo: updateData.actualAadharNo,
+    });
+
+    if (sameActualPanNo) {
+      return res.status(400).json({
+        status: false,
+        message: "ActualPanNo already exists",
+      });
+    }
+
+    if (sameActualAadhar) {
+      return res.status(400).json({
+        status: false,
+        message: "ActualAadharNo already exist",
+      });
+    }
+
+    const sameBeneficiaryAadhar = await ContractorProfileModel.findOne({
+      BeneficiaryAadharNo: updateData.beneficiaryAadharNo,
+    });
+    const sameBeneficiaryPan = await ContractorProfileModel.findOne({
+      BeneficiaryPanNo: updateData.beneficiaryPanNo,
+    });
+
+    if (sameBeneficiaryAadhar) {
+      return res
+        .status(400)
+        .json({ status: false, message: "BeneficaiaryAadharNo already exist" });
+    }
+
+    if (sameBeneficiaryPan) {
+      return res
+        .status(400)
+        .json({ status: false, message: "BeneficaiaryPanNo already exist" });
+    }
 
     const updatedProfile = await ContractorProfileModel.findByIdAndUpdate(
       profileId,
