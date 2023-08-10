@@ -263,3 +263,63 @@ const scheduleReminderCheck = () => {
 
 // Call the scheduler to set up the reminder check
 scheduleReminderCheck();
+
+export const updateTask = async (req, res) => {
+ try {
+
+  const { date, workingHour, task } = req.body
+
+  if(!Object.keys(req.body).length>0){
+    return res.status(400).json({status: false, message:"Please provide details"})
+  }
+  if(!date) {
+    return res.status(400).json({status: false, message: "Please provide date"})
+  }
+  if(!workingHour) {
+    return res.status(400).json({status: false, message: "Please provide workingHour"})
+  }
+  if(!task) {
+    return res.status(400).json({status: false, message: "Please provide task"})
+  }
+
+  //Vaildate the date format
+  if(!moment(date,"DD/MM/YYYY", true).isValid()){
+    return res.staus(400).json({status: false, message: "Invalid date format. Use DD/MM/YYYY"})
+  }
+
+  const existContractor = await ContractorModel.findOne({
+    _id:req.user._id
+  })
+
+  if(!existContractor) {
+    return res.status(400).json({staus: false, message:"Contractor does not exist"})
+  }
+  let existingTask = await TaskModel.findOne({
+    contractorId: req.user._id,
+    date: moment(date,"DD/MM/YYYY").toDate(),
+  });
+
+  if(!existingTask) {
+    const taskData = {
+      contractorId: req.user._id,
+      date: moment(date, "DD/MM/YYYY").format(),
+      workingHour,
+      task
+    };
+
+    existingTask = await TaskModel.create(taskData);
+    
+    return res.status(201).json({status: true, message: "Task Updated successfully", data: existingTask})
+  }
+  
+  //Update the existing task
+  existingTask.date = moment(date, "DD/MM/YYYY").format();
+  existingTask.workingHour = workingHour;
+  existingTask.task = task;
+  await existingTask.save();
+
+  return res.status(200).json({status: true, message: "Task Updated Successfully", date: existingTask})
+ } catch (error) {
+  return res.status(500).json({status: false, message: error.message})
+ }
+}
