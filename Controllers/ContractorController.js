@@ -375,7 +375,7 @@ export const getContractor = async function (req, res) {
     const totalPages = Math.ceil(totalContractors / limit);
 
     const contractors = await ContractorModel.find()
-
+     .populate("profileId", "-password")
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -514,7 +514,7 @@ export const declineContractor = async (req, res) => {
 
     const approvedContractor = await ContractorProfileModel.updateOne(
       { _id: contractorExist.profileId },
-      { $set: { IsDecline: true, IsApproved: false } }
+      { $set: { IsDecline: true, IsApprove: false } }
     );
 
     if (approvedContractor.acknowledged) {
