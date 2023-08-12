@@ -514,7 +514,7 @@ export const declineContractor = async (req, res) => {
 
     const approvedContractor = await ContractorProfileModel.updateOne(
       { _id: contractorExist.profileId },
-      { $set: { IsDecline: true, IsApprove: false } }
+      { $set: { IsDecline: true, IsApproved: false } }
     );
 
     if (approvedContractor.acknowledged) {
