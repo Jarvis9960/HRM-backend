@@ -5,6 +5,10 @@ const taskSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Contractor', 
   },
+  organization: {
+    type: String,
+    required: true
+  },
   date: {
     type: Date,
     required: true,
