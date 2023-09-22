@@ -8,6 +8,7 @@ import adminRoute from "./Routes/AdminRoute.js";
 import contractorRoute from "./Routes/ContractorRoute.js";
 import cookieParser from 'cookie-parser';
 import timesheetRoute from './Routes/TimesheetRoute.js';
+import SendMailRoute from "./Routes/SendMailRoute.js";
 
 const app = express();
 
@@ -45,7 +46,8 @@ connectDb()
 
 app.use("/api", adminRoute);
 app.use("/api", contractorRoute);
-app.use("/api", timesheetRoute)
+app.use("/api", timesheetRoute);
+app.use("/api", SendMailRoute)
 
 
 // app to listen on port function

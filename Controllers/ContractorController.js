@@ -480,6 +480,7 @@ export const approveContractor = async (req, res) => {
       { $set: { IsApproved: true, IsDecline: false } }
     );
 
+    
     if (approvedContactor.acknowledged) {
       return res
         .status(201)
