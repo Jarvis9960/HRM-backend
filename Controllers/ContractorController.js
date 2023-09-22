@@ -480,6 +480,7 @@ export const approveContractor = async (req, res) => {
       { $set: { IsApproved: true, IsDecline: false } }
     );
 
+    
     if (approvedContactor.acknowledged) {
       return res
         .status(201)
@@ -514,7 +515,7 @@ export const declineContractor = async (req, res) => {
 
     const approvedContractor = await ContractorProfileModel.updateOne(
       { _id: contractorExist.profileId },
-      { $set: { IsDecline: true, IsApprove: false } }
+      { $set: { IsDecline: true, IsApproved: false } }
     );
 
     if (approvedContractor.acknowledged) {
