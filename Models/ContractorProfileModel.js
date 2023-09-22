@@ -92,6 +92,9 @@ const contractorSchema = new mongoose.Schema({
       type: Number,
       required: true,
     },
+    Organization: {
+      type: [String],
+    },
     IsApproved: {
         type: Boolean,
         default: false,
