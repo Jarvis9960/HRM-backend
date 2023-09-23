@@ -8,6 +8,7 @@ let configPath = join(parentDir, "config.env");
 dotenv.config({ path: configPath });
 import axios from "axios";
 import querystring from "querystring";
+import fs from "node:fs";
 
 export const getUserConsent = (req, res) => {
   // Redirect user to Microsoft login page for consent
@@ -49,7 +50,7 @@ export const microsoftLoginController = async (req, res) => {
     // Now you can use the access token to make authorized requests to Microsoft Graph API
     // Set the access token as a cookie
     res.cookie("accessToken", accessToken, {
-      domain: 'localhost',
+      domain: "localhost",
       httpOnly: true, // Make the cookie accessible only via HTTP (not JavaScript)
       sameSite: "strict", // Enforce same-site policy for security
       maxAge: 3600, // Set the cookie expiration time in seconds (e.g., 1 hour)
@@ -67,44 +68,83 @@ export const microsoftLoginController = async (req, res) => {
 export const sendMailFromContractorMail = async (req, res) => {
   try {
     // Access token from the session or database
-    const accessToken = req.body.accessToken;
+    const { accessToken, OrganizationMail } = req.body;
 
-    console.log(accessToken);
+    if (!accessToken) {
+      return res.status(401).json({
+        status: false,
+        message: "Invalid Auth. Access Token is not provided",
+      });
+    }
 
-    // Email data with attachments
-    const emailData = {
-      message: {
-        subject: "Hello from My App",
-        body: {
-          contentType: "Text",
-          content: "This is the email content.",
-        },
-        toRecipients: [
-          {
-            emailAddress: {
-              address: "durgesh.rajak@ajiledone.com",
-            },
+    const TimesheetFile = req.file;
+
+    if (!TimesheetFile) {
+      return res
+        .status(422)
+        .json({ status: false, message: "Timesheet CSV file is not given" });
+    }
+
+    const timeSheetFilePath = TimesheetFile.path;
+
+    if (fs.existsSync(timeSheetFilePath)) {
+      const FileData = fs.readFileSync(timeSheetFilePath, "base64");
+
+      // Email data with attachments
+      const emailData = {
+        message: {
+          subject: "Timesheet for current month",
+          body: {
+            contentType: "Text",
+            content:
+              "Hello , This is My Timesheet for the current month. Please take a look into it and let me know for approval",
           },
-        ],
-      },
-    };
-
-    // Send email using Microsoft Graph API
-    const response = await axios.post(
-      "https://graph.microsoft.com/v1.0/me/sendMail",
-      emailData,
-      {
-        headers: {
-          Authorization: `Bearer ${accessToken}`,
-          "Content-Type": "application/json",
+          toRecipients: [
+            {
+              emailAddress: {
+                address: OrganizationMail,
+              },
+            },
+          ],
+          attachments: [
+            {
+              "@odata.type": "#microsoft.graph.fileAttachment",
+              name: "Timesheet.csv", // Set the desired name for the attachment
+              contentBytes: FileData, // Convert the file to base64
+            },
+          ],
         },
-      }
-    );
+      };
 
-    console.log("Email sent:", response);
-    res.send("Email sent successfully with attachments.");
+      // Send email using Microsoft Graph API
+      const response = await axios.post(
+        "https://graph.microsoft.com/v1.0/me/sendMail",
+        emailData,
+        {
+          headers: {
+            Authorization: `Bearer ${accessToken}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      console.log("Email sent:", response);
+
+      if (response.statusText === "Accepted") {
+        res.status(201).json({
+          status: true,
+          message: "Email sent successfully with attachments.",
+        });
+      }
+    } else {
+      return res.status(422).json({
+        status: false,
+        message:
+          "Something went wrong. Either doesn't exist or file has been corrupted",
+      });
+    }
   } catch (error) {
-    console.error("Error sending email:", error.response.data);
+    console.error("Error sending email:", error);
     res.status(500).send("Error sending email with attachments.");
   }
 };
