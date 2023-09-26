@@ -21,10 +21,6 @@ const InvoiceModelSchema = new mongoose.Schema({
     type: Boolean,
     default: true,
   },
-  IsExpire: {
-    type: Boolean,
-    default: false,
-  },
 });
 
 const InvoiceModel = mongoose.model("Invoices", InvoiceModelSchema);

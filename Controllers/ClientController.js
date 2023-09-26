@@ -135,6 +135,15 @@ export const createPO = async (req, res) => {
 
     const response = await newPo.save();
 
+    const updateClient = await ClientModel.updateOne(
+      { _id: clientId },
+      { $push: { PO: response._id } }
+    );
+
+    if (updateClient.acknowledged) {
+      console.log("PO is added to client");
+    }
+
     if (response) {
       return res.status(201).json({
         status: false,
@@ -208,7 +217,7 @@ export const getSinglePO = async (req, res) => {
 
     return res
       .status(202)
-      .json({ status: true, message: "successfully fetched PO" });
+      .json({ status: true, message: "successfully fetched PO", singlePO: getSinglePo });
   } catch (error) {
     return res
       .status(500)

@@ -29,9 +29,13 @@ const POSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
-  IsApproved: {
+  IsActive: {
     type: Boolean,
-    required: true,
+    default: true,
+  },
+  IsExpired: {
+    type: Boolean,
+    default: false,
   },
 });
 
