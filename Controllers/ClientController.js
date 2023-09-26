@@ -1,3 +1,4 @@
+import moment from "moment";
 import ClientModel from "../Models/ClientModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import POModel from "../Models/POModel.js";
@@ -118,12 +119,16 @@ export const createPO = async (req, res) => {
       });
     }
 
+    // Parse and format the date strings using Moment.js
+    const validFromDate = moment(ValidFrom, "YYYY-MM-DD").toDate();
+    const validTillDate = moment(Validtill, "YYYY-MM-DD").toDate();
+
     const newPo = new POModel({
       clientId: clientId,
       PONumber: poNumber,
       POAmount: poAmount,
-      ValidFrom: ValidFrom,
-      ValidTill: Validtill,
+      ValidFrom: validFromDate,
+      ValidTill: validTillDate,
       PODiscription: POdescription,
       IssuerName: issuerName,
     });
@@ -210,5 +215,3 @@ export const getSinglePO = async (req, res) => {
       .json({ status: false, message: "something went wrong", err: error });
   }
 };
-
-
