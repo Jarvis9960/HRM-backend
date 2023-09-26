@@ -12,7 +12,7 @@ const ClientSchema = new mongoose.Schema({
   PO: [
     {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "PurchaseOrder",
+      ref: "PO",
     },
   ],
 });
