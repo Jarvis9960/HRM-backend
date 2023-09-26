@@ -144,7 +144,7 @@ export const sendMailFromContractorMail = async (req, res) => {
       });
     }
   } catch (error) {
-    console.error("Error sending email:", error);
+    console.error("Error sending email:", error.response);
     res.status(500).send("Error sending email with attachments.");
   }
 };
