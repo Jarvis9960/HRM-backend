@@ -1,54 +1,55 @@
 import mongoose from "mongoose";
 
-const contractorSchema = new mongoose.Schema({
+const contractorSchema = new mongoose.Schema(
+  {
     ActualName: {
-        type: String,
-        required: true,
-      },
-      ActualAadharNo: {
-        type: String,
-        required: true,
-      },
-      ActualPanNo: {
-        type: String,
-        required: true,
-      },
-       ActualPanImage: {
-        type: String,
-      },
-      ActualAdharImage: {
-        type: String,
-      },
-      BeneficiaryName: {
-        type: String,
-        required: true,
-      },
-      BeneficiaryAadharNo: {
-        type: String,
-        required: true,
-      },
-      BeneficiaryPanNo: {
-        type: String,
-        required: true,
-      },
-      BeneficiaryPanImage: {
-        type: String,
-      },
-      BeneficiaryAadharImage: {
-        type: String,
-      },
-      BankName: {
-        type: String,
-        required: true,
-      },
-      BankAccNo: {
-        type: String,
-        required: true,
-      },
-      IFSCcode: {
-        type: String,
-        required: true,
-      },
+      type: String,
+      required: true,
+    },
+    ActualAadharNo: {
+      type: String,
+      required: true,
+    },
+    ActualPanNo: {
+      type: String,
+      required: true,
+    },
+    ActualPanImage: {
+      type: String,
+    },
+    ActualAdharImage: {
+      type: String,
+    },
+    BeneficiaryName: {
+      type: String,
+      required: true,
+    },
+    BeneficiaryAadharNo: {
+      type: String,
+      required: true,
+    },
+    BeneficiaryPanNo: {
+      type: String,
+      required: true,
+    },
+    BeneficiaryPanImage: {
+      type: String,
+    },
+    BeneficiaryAadharImage: {
+      type: String,
+    },
+    BankName: {
+      type: String,
+      required: true,
+    },
+    BankAccNo: {
+      type: String,
+      required: true,
+    },
+    IFSCcode: {
+      type: String,
+      required: true,
+    },
     ContractName: {
       type: String,
       required: true,
@@ -69,10 +70,10 @@ const contractorSchema = new mongoose.Schema({
       type: String,
       required: true,
     },
-   JoinDate: {
+    JoinDate: {
       type: Date,
       required: true,
-   },
+    },
     Nationality: {
       type: String,
       required: true,
@@ -93,18 +94,23 @@ const contractorSchema = new mongoose.Schema({
       required: true,
     },
     Organization: {
-      type: [String],
+      type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Client" }],
     },
     IsApproved: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
     IsDecline: {
-        type: Boolean,
-        default: false,
+      type: Boolean,
+      default: false,
     },
-  }, { timestamps: true });
+  },
+  { timestamps: true }
+);
 
- const ContractorProfileModel = mongoose.model("ContractorProfile", contractorSchema);
+const ContractorProfileModel = mongoose.model(
+  "ContractorProfile",
+  contractorSchema
+);
 
- export default ContractorProfileModel
+export default ContractorProfileModel;

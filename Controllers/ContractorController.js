@@ -9,6 +9,7 @@ const passwordValidation =
 import ContractorModel from "../Models/ContractorModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import { generateRandomPassword } from "../Utils/PasswordUtil.js";
+import { populate } from "dotenv";
 
 // Create Contractor
 export const createContractor = async (req, res) => {
@@ -91,7 +92,6 @@ export const createContractor = async (req, res) => {
       to: email,
       subject: "Welcome to our platform",
       text: `Dear ${first_name},\n\nYou have been successfully added as a contractor. Here are your login credentials:\n\nEmail: ${email}\nPassword: ${plainTextPassword}\n\nPlease use these credentials to log in to our platform.\n\nBest regards,\nThe Admin Team`,
-
     };
 
     transporter.sendMail(mailOptions, (error, info) => {
@@ -375,7 +375,7 @@ export const getContractor = async function (req, res) {
     const totalPages = Math.ceil(totalContractors / limit);
 
     const contractors = await ContractorModel.find()
-     .populate("profileId", "-password")
+      .populate("profileId", "-password")
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -480,7 +480,6 @@ export const approveContractor = async (req, res) => {
       { $set: { IsApproved: true, IsDecline: false } }
     );
 
-    
     if (approvedContactor.acknowledged) {
       return res
         .status(201)
@@ -567,7 +566,14 @@ export const getdetailsofContractor = async function (req, res) {
 
     let contractor = await ContractorModel.findOne({
       _id: contractorId,
-    }).populate("profileId", "-password");
+    }).populate({
+      path: "profileId",
+      select: "-password",
+      populate: {
+        path: "Organization",
+      },
+    });
+
     if (!contractor) {
       return res.status(404).send({
         status: false,
@@ -733,13 +739,11 @@ export const contractorResetPassword = async (req, res) => {
       );
 
       if (updatedContractor.acknowledged === true) {
-        return res
-          .status(200)
-          .json({
-            status: true,
-            message: "Password changed successfully",
-            newPassword: plainTextPassword,
-          });
+        return res.status(200).json({
+          status: true,
+          message: "Password changed successfully",
+          newPassword: plainTextPassword,
+        });
       }
     }
   } catch (error) {
@@ -754,8 +758,8 @@ export const contractorResetPassword = async (req, res) => {
 export const reupdateContractorProfile = async (req, res) => {
   try {
     const profileId = req.user.profileId;
-    const updateData = req.body; 
-    const files = req.files; 
+    const updateData = req.body;
+    const files = req.files;
 
     if (files) {
       if (files.actualPanImage) {
@@ -768,7 +772,8 @@ export const reupdateContractorProfile = async (req, res) => {
         updateData.BeneficiaryPanImageLink = files.beneficiaryPanImage[0].path;
       }
       if (files.beneficiaryAadharImage) {
-        updateData.BeneficiaryAadharImageLink = files.beneficiaryAadharImage[0].path;
+        updateData.BeneficiaryAadharImageLink =
+          files.beneficiaryAadharImage[0].path;
       }
     }
 
@@ -862,7 +867,7 @@ export const reupdateContractorProfile = async (req, res) => {
         from: "exactsshubham@gmail.com",
         to: "ankitfukte11@gmail.com",
         subject: "Contractor Reupdated Profile",
-        text: `The profile for contractor ${updatedProfile.ActualName} with aadharNumber ${updatedProfile.ActualAadharNo} has been reupdated.`
+        text: `The profile for contractor ${updatedProfile.ActualName} with aadharNumber ${updatedProfile.ActualAadharNo} has been reupdated.`,
       };
 
       transporter.sendMail(mailOptions, (error, info) => {
