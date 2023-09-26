@@ -58,6 +58,7 @@ export const getClientForAdmin = async (req, res) => {
       totalPages: totalPages,
     });
   } catch (error) {
+    console.log(error)
     return res
       .status(500)
       .json({ status: false, message: "something went wrong", err: error });
