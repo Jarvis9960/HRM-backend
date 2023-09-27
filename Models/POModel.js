@@ -29,6 +29,10 @@ const POSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  IssuerEmail: {
+    type: String,
+    required: true,
+  },
   IsActive: {
     type: Boolean,
     default: true,
@@ -36,6 +40,9 @@ const POSchema = new mongoose.Schema({
   IsExpired: {
     type: Boolean,
     default: false,
+  },
+  Contractors: {
+    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Contractor" }],
   },
 });
 

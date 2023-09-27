@@ -1,6 +1,6 @@
 import express from "express";
 import { tokenCheckadmin } from "../Middlewares/tokenCheckadmin .js";
-import { createClient, createPO, getClientForAdmin, getPOOfClients, getSinglePO, updateOrganizationOfOrganization } from "../Controllers/ClientController.js";
+import { createClient, createPO, deleteContractorFromPO, getClientForAdmin, getPOOfClients, getSinglePO, updateContractorIntoPo, updateOrganizationOfOrganization } from "../Controllers/ClientController.js";
 const router = express.Router();
 
 router.post("/createClient", tokenCheckadmin, createClient);
@@ -9,6 +9,8 @@ router.patch("/updateOrganizationtofclient", tokenCheckadmin, updateOrganization
 router.get("/getPO's", tokenCheckadmin, getPOOfClients);
 router.get("/getsinglePo", tokenCheckadmin, getSinglePO);
 router.post("/createPo", tokenCheckadmin, createPO);
+router.patch("/updateContractorintopo", tokenCheckadmin, updateContractorIntoPo);
+router.delete("/deletecontractorfrompo", tokenCheckadmin, deleteContractorFromPO);
 
 
 
