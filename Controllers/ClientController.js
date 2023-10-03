@@ -3,7 +3,6 @@ import ClientModel from "../Models/ClientModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import POModel from "../Models/POModel.js";
 
-
 export const createClient = async (req, res) => {
   try {
     const { clientName, clientEmail } = req.body;
@@ -129,7 +128,7 @@ export const createPO = async (req, res) => {
       "YYYY-MM-DDTHH:mm:ss.SSSZ"
     ).toDate();
     const validTillDate = moment(
-      ValidTill,
+      Validtill,
       "YYYY-MM-DDTHH:mm:ss.SSSZ"
     ).toDate();
 
@@ -170,12 +169,19 @@ export const createPO = async (req, res) => {
 
 export const updateContractorIntoPo = async (req, res) => {
   try {
-    const { contractorId, poId } = req.body;
+    const { contractorId, poId, contractorAmount } = req.body;
 
     if (!contractorId) {
       return res.status(422).json({
         status: false,
         message: "Please provide Contractor id to update",
+      });
+    }
+
+    if (!contractorAmount) {
+      return res.status(422).json({
+        status: false,
+        message: "Please provide amount to contractor",
       });
     }
 
@@ -185,9 +191,29 @@ export const updateContractorIntoPo = async (req, res) => {
         .json({ status: false, message: "Please provide po id to update" });
     }
 
+    const contractorData = {
+      id: contractorId,
+      amount: contractorAmount,
+    };
+
+    const contractorExists = await POModel.aggregate([
+      {
+        $match: {
+          _id: mongoose.Types.ObjectId(poId),
+          "Contractors.id": mongoose.Types.ObjectId(contractorId),
+        },
+      },
+    ]);
+
+    if (contractorExists.length > 0) {
+      return res
+        .status(422)
+        .json({ status: false, message: "contractor is already is this po" });
+    }
+
     const updateResponse = await POModel.updateOne(
       { _id: poId },
-      { $push: { Contractors: contractorId } }
+      { $push: { Contractors: contractorData } }
     );
 
     if (updateResponse.acknowledged) {
@@ -277,12 +303,10 @@ export const deleteContractorFromPO = async (req, res) => {
     const { contractorId, poId } = req.query;
 
     if (!contractorId) {
-      return res
-        .status(422)
-        .json({
-          status: false,
-          message: "Please provide contractor id to delete",
-        });
+      return res.status(422).json({
+        status: false,
+        message: "Please provide contractor id to delete",
+      });
     }
 
     if (!poId) {
@@ -293,7 +317,7 @@ export const deleteContractorFromPO = async (req, res) => {
 
     const deleteResponse = await POModel.updateOne(
       { _id: poId },
-      { $pull: { Contractors: contractorId } }
+      { $pull: { Contractors: { id: contractorId } } }
     );
 
     if (deleteResponse.acknowledged) {
@@ -302,7 +326,7 @@ export const deleteContractorFromPO = async (req, res) => {
         .json({ status: true, message: "Contractor has been removed from po" });
     }
   } catch (error) {
-    console.log(error)
+    console.log(error);
     return res
       .status(500)
       .json({ status: false, message: "something went wrong", err: error });

@@ -41,9 +41,12 @@ const POSchema = new mongoose.Schema({
     type: Boolean,
     default: false,
   },
-  Contractors: {
-    type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Contractor" }],
-  },
+  Contractors: [
+    {
+      id: { type: mongoose.Schema.Types.ObjectId, ref: "Contractor" },
+      amount: Number,
+    },
+  ],
 });
 
 const POModel = mongoose.model("PO", POSchema);
