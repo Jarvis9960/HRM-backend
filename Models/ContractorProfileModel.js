@@ -96,6 +96,12 @@ const contractorSchema = new mongoose.Schema(
     Organization: {
       type: [{ type: mongoose.Schema.Types.ObjectId, ref: "Client" }],
     },
+    SelfOrganization: [
+      {
+        id: { type: mongoose.Schema.Types.ObjectId, ref: "Client" },
+        amount: Number,
+      },
+    ],
     IsApproved: {
       type: Boolean,
       default: false,

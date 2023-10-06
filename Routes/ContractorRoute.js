@@ -12,7 +12,9 @@ import {
   declineContractor,
   contractorForgotPassword,
   contractorResetPassword,
-  reupdateContractorProfile
+  reupdateContractorProfile,
+  updateOrganizationInProfile,
+  deleteOrganizationFromContractor,
 } from "../Controllers/ContractorController.js";
 
 import { storage, checkFileType } from "../Middlewares/multerMiddleware.js";
@@ -39,7 +41,7 @@ router.get("/getContractor", tokenCheckadmin, getContractor);
 router.patch("/approveContractor", tokenCheckadmin, approveContractor);
 router.patch("/declineContractor", tokenCheckadmin, declineContractor);
 router.get("/getdetailsofContractor", tokenCheckadmin, getdetailsofContractor);
-router.get("/searchContractors", tokenCheckadmin, searchContractors)
+router.get("/searchContractors", tokenCheckadmin, searchContractors);
 
 router.post("/loginContractor", loginContractor);
 router.post(
@@ -50,6 +52,20 @@ router.post(
 );
 router.get("/getownDetails", tokenCheckcontractor, getowndetailsofContractor);
 router.post("/contractorForgotPassword", contractorForgotPassword);
-router.post("/contractorResetPassword/:resetPassToken", contractorResetPassword)
-router.patch("/reupdatedProfile", tokenCheckcontractor, multerUploadfiles, reupdateContractorProfile)
+router.post(
+  "/contractorResetPassword/:resetPassToken",
+  contractorResetPassword
+);
+router.patch(
+  "/reupdatedProfile",
+  tokenCheckcontractor,
+  multerUploadfiles,
+  reupdateContractorProfile
+);
+router.patch("/addorganization", tokenCheckadmin, updateOrganizationInProfile);
+router.delete(
+  "/deleteorganization",
+  tokenCheckadmin,
+  deleteOrganizationFromContractor
+);
 export default router;

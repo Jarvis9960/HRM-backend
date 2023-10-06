@@ -569,9 +569,14 @@ export const getdetailsofContractor = async function (req, res) {
     }).populate({
       path: "profileId",
       select: "-password",
-      populate: {
-        path: "Organization",
-      },
+      populate: [
+        {
+          path: "Organization",
+        },
+        {
+          path: "SelfOrganization",
+        },
+      ],
     });
 
     if (!contractor) {
@@ -594,7 +599,13 @@ export const getowndetailsofContractor = async function (req, res) {
 
     let contractor = await ContractorModel.findOne({
       _id: contractorId,
-    }).populate("profileId", "-password");
+    }).populate({
+      path: "profileId",
+      select: "-password",
+      populate: {
+        path: "SelfOrganization",
+      },
+    });
     if (!contractor) {
       return res
         .status(404)
@@ -886,5 +897,72 @@ export const reupdateContractorProfile = async (req, res) => {
     });
   } catch (err) {
     res.status(500).json({ status: false, message: err.message });
+  }
+};
+
+export const updateOrganizationInProfile = async (req, res) => {
+  try {
+    const { contractorId, clientId, amount } = req.body;
+
+    if (!contractorId || !clientId || !amount) {
+      return res.status(422).json({
+        status: false,
+        message: "Please provide all the required field properly",
+      });
+    }
+
+    const organizationExists = await ContractorProfileModel.findOne({
+      _id: contractorId,
+      "SelfOrganization.id": clientId,
+    });
+
+    if (organizationExists) {
+      return res
+        .status(202)
+        .json({ status: false, message: "Organization already exists" });
+    }
+
+    const updateResponse = await ContractorProfileModel.updateOne(
+      { _id: contractorId },
+      { $push: { id: clientId, amount: amount } }
+    );
+
+    if (updateResponse.acknowledged) {
+      return res
+        .status(201)
+        .json({ status: true, message: "organization successfully added" });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ status: false, message: "something went wrong", err: error });
+  }
+};
+
+export const deleteOrganizationFromContractor = async (req, res) => {
+  try {
+    const { contractorId, clientId } = req.query;
+
+    if (!contractorId || !clientId) {
+      return res.status(422).json({
+        status: false,
+        message: "Please provide all the required field properly",
+      });
+    }
+
+    const deleteResponse = await ContractorProfileModel.updateOne(
+      { _id: contractorId },
+      { $pull: { SelfOrganization: { id: clientId } } }
+    );
+
+    if (deleteResponse.acknowledged) {
+      return res
+        .status(201)
+        .json({ status: true, message: "organization had been removed" });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ status: false, message: "something went wrong", err: error });
   }
 };
