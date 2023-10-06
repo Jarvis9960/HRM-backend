@@ -2,6 +2,7 @@ import moment from "moment";
 import ClientModel from "../Models/ClientModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import POModel from "../Models/POModel.js";
+import mongoose from "mongoose";
 
 export const createClient = async (req, res) => {
   try {
@@ -196,16 +197,13 @@ export const updateContractorIntoPo = async (req, res) => {
       amount: contractorAmount,
     };
 
-    const contractorExists = await POModel.aggregate([
-      {
-        $match: {
-          _id: mongoose.Types.ObjectId(poId),
-          "Contractors.id": mongoose.Types.ObjectId(contractorId),
-        },
-      },
-    ]);
 
-    if (contractorExists.length > 0) {
+    const contractorExists = await POModel.findOne({
+      _id: poId,
+      "Contractors.id": contractorId,
+    });
+
+    if (contractorExists) {
       return res
         .status(422)
         .json({ status: false, message: "contractor is already is this po" });
@@ -222,6 +220,7 @@ export const updateContractorIntoPo = async (req, res) => {
         .json({ status: true, message: "successfully added contractor to po" });
     }
   } catch (error) {
+    console.log(error);
     return res
       .status(500)
       .json({ status: false, message: "something went wrong", err: error });
@@ -278,7 +277,7 @@ export const getSinglePO = async (req, res) => {
         .json({ status: false, message: "No po id is present in query" });
     }
 
-    const getSinglePo = await POModel.findById(poId).populate("Contractors");
+    const getSinglePo = await POModel.findById(poId).populate("Contractors.id");
 
     if (!getSinglePo) {
       return res
