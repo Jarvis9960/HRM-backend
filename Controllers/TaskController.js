@@ -127,12 +127,12 @@ export const getallTasks = async (req, res) => {
           $gte: startOfMonth.toDate(),
           $lte: endOfMonth.toDate(),
         },
-      });
+      }).populate("organization");
     } else if (parsedDate2.isValid()) {
       tasks = await TaskModel.find({
         organization: organization,
         date: parsedDate.toDate(),
-      });
+      }).populate("organization");
     }
 
     if (tasks.length === 0) {
@@ -190,13 +190,13 @@ export const getownTasks = async (req, res) => {
         contractorId,
         organization: organization,
         date: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() },
-      });
+      }).populate("organization");
     } else if (parsedDate2.isValid()) {
       tasks = await TaskModel.find({
         contractorId,
         organization: organization,
         date: parsedDate.toDate(),
-      });
+      }).populate("organization");
     }
 
     if (tasks.length === 0) {
