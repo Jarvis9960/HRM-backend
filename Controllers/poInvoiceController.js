@@ -1,4 +1,4 @@
-import poInvoiceModel from "../Models/PoInvoiceModel";
+import poInvoiceModel from "../Models/PoInvoiceModel.js";
 
 export const createPoInvoice = async (req, res) => {
   try {

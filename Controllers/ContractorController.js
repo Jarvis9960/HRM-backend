@@ -574,7 +574,7 @@ export const getdetailsofContractor = async function (req, res) {
           path: "Organization",
         },
         {
-          path: "SelfOrganization",
+          path: "SelfOrganization.id",
         },
       ],
     });
@@ -924,7 +924,7 @@ export const updateOrganizationInProfile = async (req, res) => {
 
     const updateResponse = await ContractorProfileModel.updateOne(
       { _id: contractorId },
-      { $push: { id: clientId, amount: amount } }
+      { $push: { SelfOrganization: { id: clientId, amount: amount } } }
     );
 
     if (updateResponse.acknowledged) {

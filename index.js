@@ -11,6 +11,7 @@ import timesheetRoute from './Routes/TimesheetRoute.js';
 import SendMailRoute from "./Routes/SendMailRoute.js";
 import ClientRoute from "./Routes/ClientRoute.js";
 import PoInvoiceRoute from "./Routes/PoInvoiceRoute.js";
+import InvoiceApprovalRoute from "./Routes/InvoiceApprovalRoute.js";
 
 const app = express();
 
@@ -53,6 +54,7 @@ app.use("/api", timesheetRoute);
 app.use("/api", SendMailRoute);
 app.use("/api", ClientRoute);
 app.use("/api", PoInvoiceRoute);
+app.use("/api", InvoiceApprovalRoute);
 
 
 
