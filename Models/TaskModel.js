@@ -6,8 +6,8 @@ const taskSchema = new mongoose.Schema({
     ref: 'Contractor', 
   },
   organization: {
-    type: String,
-    required: true
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Client"
   },
   date: {
     type: Date,
