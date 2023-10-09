@@ -5,6 +5,10 @@ const invoiceApprovalSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "Contractor",
   },
+  clientId: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "Client"
+  },
   amount: {
     type: Number,
   },

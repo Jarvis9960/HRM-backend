@@ -3,7 +3,7 @@ import InvoiceApprovalModel from "../Models/InvoiceApproval.js";
 
 export const createInvoiceApproval = async (req, res) => {
   try {
-    const { amount, month, year } = req.body;
+    const { amount, month, year, clientId } = req.body;
 
     if (!amount || !month || !year) {
       return res.status(422).json({
@@ -27,6 +27,7 @@ export const createInvoiceApproval = async (req, res) => {
 
     const newInvoiceApproval = new InvoiceApprovalModel({
       contractorId: req.user._id,
+      clientId: clientId,
       amount: amount,
       InvoiceMonth: invoiceDate,
       ApprovalScreenshot: approvalScreenshot.path,
@@ -75,7 +76,7 @@ export const getApprovedInvoiceofContractor = async (req, res) => {
       isPending: false,
       isReject: false,
     })
-      .populate("contractorId")
+      .populate("contractorId clientId")
       .skip((page - 1) * limit)
       .limit(limit);
 
@@ -126,7 +127,7 @@ export const getPendingInvoice = async (req, res) => {
       isApproved: false,
       isReject: false,
     })
-      .populate("contractorId")
+      .populate("contractorId clientId")
       .skip((page - 1) * limit)
       .limit(limit);
 
