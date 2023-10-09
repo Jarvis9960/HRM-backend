@@ -62,7 +62,7 @@ export const getApprovedInvoiceofContractor = async (req, res) => {
     }
 
     const totalInvoice = await InvoiceApprovalModel.find({
-      _id: contractorId,
+      contractorId: contractorId,
       isApproved: true,
       isPending: false,
       isReject: false,
@@ -70,7 +70,7 @@ export const getApprovedInvoiceofContractor = async (req, res) => {
     const totalPage = Math.ceil(totalInvoice / limit);
 
     const getInvoice = await InvoiceApprovalModel.find({
-      _id: contractorId,
+      contractorId: contractorId,
       isApproved: true,
       isPending: false,
       isReject: false,
@@ -113,7 +113,7 @@ export const getPendingInvoice = async (req, res) => {
       });
     }
     const totalContractor = await InvoiceApprovalModel.find({
-      _id: contractorId,
+      contractorId: contractorId,
       isPending: true,
       isApproved: false,
       isReject: false,
@@ -121,7 +121,7 @@ export const getPendingInvoice = async (req, res) => {
     const totalPage = Math.ceil(totalContractor / limit);
 
     const getInvoice = await InvoiceApprovalModel.find({
-      _id: contractorId,
+      contractorId: contractorId,
       isPending: true,
       isApproved: false,
       isReject: false,
