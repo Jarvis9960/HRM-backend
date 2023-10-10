@@ -6,18 +6,24 @@ import connectDb from "./Database/connectDB.js";
 dotenv.config({ path: path.resolve("./config.env") });
 import adminRoute from "./Routes/AdminRoute.js";
 import contractorRoute from "./Routes/ContractorRoute.js";
-import cookieParser from 'cookie-parser';
-import timesheetRoute from './Routes/TimesheetRoute.js';
+import cookieParser from "cookie-parser";
+import timesheetRoute from "./Routes/TimesheetRoute.js";
 import SendMailRoute from "./Routes/SendMailRoute.js";
 import ClientRoute from "./Routes/ClientRoute.js";
 import PoInvoiceRoute from "./Routes/PoInvoiceRoute.js";
 import InvoiceApprovalRoute from "./Routes/InvoiceApprovalRoute.js";
+import { fileURLToPath } from "url";
+import { dirname } from "path";
 
 const app = express();
+
+const fileName = fileURLToPath(import.meta.url);
+const __dirname = dirname(fileName);
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(express.static(path.join(__dirname, "public")));
 
 const allowedOrigins = [
   "http://localhost:5173",
@@ -25,19 +31,21 @@ const allowedOrigins = [
   "http://localhost:5000",
   "http://localhost:6000",
   "http://127.0.0.1:5173",
-  "http://127.0.0.1:4000"
+  "http://127.0.0.1:4000",
 ];
 
-app.use(cors({
-  origin: function (origin, callback) {
-    if (allowedOrigins.includes(origin) || !origin) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
-  credentials: true
-}));
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (allowedOrigins.includes(origin) || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  })
+);
 
 // database connection function
 connectDb()
@@ -55,8 +63,6 @@ app.use("/api", SendMailRoute);
 app.use("/api", ClientRoute);
 app.use("/api", PoInvoiceRoute);
 app.use("/api", InvoiceApprovalRoute);
-
-
 
 // app to listen on port function
 const PORT = process.env.PORT;

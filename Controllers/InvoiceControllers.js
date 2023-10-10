@@ -21,9 +21,9 @@ export const createInvoiceApproval = async (req, res) => {
       });
     }
 
-    const invoiceDate = moment(`${month} ${year}`, "MMMM YYYY")
-      .add(1, "month")
-      .toDate();
+    const invoiceDate = moment({ year, month: month - 1 }) // Subtract 1 from the month number since moment.js months are 0-based (0 for January)
+      .add(1, "month") // Add one month to the date
+      .toDate(); // Convert the moment object to a JavaScript Date object
 
     const newInvoiceApproval = new InvoiceApprovalModel({
       contractorId: req.user._id,
@@ -82,7 +82,7 @@ export const getApprovedInvoiceofContractor = async (req, res) => {
 
     if (getInvoice.length < 1) {
       return res
-        .status(202)
+        .status(404)
         .json({ status: true, message: " No Invoice for approval " });
     }
 
@@ -133,7 +133,7 @@ export const getPendingInvoice = async (req, res) => {
 
     if (getInvoice.length < 1) {
       return res
-        .status(202)
+        .status(404)
         .json({ status: true, message: " No Invoice for pending " });
     }
 
