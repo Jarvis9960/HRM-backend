@@ -44,7 +44,7 @@ const invoiceApprovalFile = multer({
 
 router.post(
   "/createinvoiceapproval",
-  // tokenCheckcontractor,
+  tokenCheckcontractor,
   invoiceApprovalFile.single("ApprovalSS"),
   createInvoiceApproval
 );
