@@ -197,7 +197,6 @@ export const updateContractorIntoPo = async (req, res) => {
       amount: contractorAmount,
     };
 
-
     const contractorExists = await POModel.findOne({
       _id: poId,
       "Contractors.id": contractorId,
@@ -277,7 +276,12 @@ export const getSinglePO = async (req, res) => {
         .json({ status: false, message: "No po id is present in query" });
     }
 
-    const getSinglePo = await POModel.findById(poId).populate("Contractors.id");
+    const getSinglePo = await POModel.findById(poId).populate({
+      path: "Contractors.id",
+      populate: {
+        path: "profileid",
+      },
+    });
 
     if (!getSinglePo) {
       return res
