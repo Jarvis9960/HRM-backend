@@ -279,7 +279,7 @@ export const getSinglePO = async (req, res) => {
     const getSinglePo = await POModel.findById(poId).populate({
       path: "Contractors.id",
       populate: {
-        path: "profileid",
+        path: "profileId",
       },
     });
 
