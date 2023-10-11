@@ -178,3 +178,43 @@ export const approveInvoice = async (req, res) => {
       .json({ status: false, message: "something went wrong", err: error });
   }
 };
+
+export const getSingleApprovedInvoice = async (req, res) => {
+  try {
+    const { invoiceId } = req.query;
+
+    if (!invoiceId) {
+      return res
+        .status(422)
+        .json({
+          status: false,
+          message: "Please Provide invoice id to view invoice",
+        });
+    }
+
+    const savedInvoice = await InvoiceApprovalModel.findOne({
+      _id: invoiceId,
+    }).populate("contractorId clientId");
+
+    if (!savedInvoice) {
+      return res
+        .status(404)
+        .json({
+          status: false,
+          message: "No Invoice is present with given id",
+        });
+    }
+
+    return res
+      .status(202)
+      .json({
+        status: true,
+        message: "successfully fetched single invoice",
+        singleInvoice: savedInvoice,
+      });
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ status: false, message: "something went wrong", err: error });
+  }
+};

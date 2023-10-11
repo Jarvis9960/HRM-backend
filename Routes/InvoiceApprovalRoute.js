@@ -1,12 +1,18 @@
 import express from "express";
 const router = express.Router();
-import { approveInvoice, createInvoiceApproval, getApprovedInvoiceofContractor, getPendingInvoice } from "../Controllers/InvoiceControllers.js";
+import {
+  approveInvoice,
+  createInvoiceApproval,
+  getApprovedInvoiceofContractor,
+  getPendingInvoice,
+  getSingleApprovedInvoice,
+} from "../Controllers/InvoiceControllers.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "path";
 import multer from "multer";
 import { tokenCheckcontractor } from "../Middlewares/tokenCheckcontractor.js";
-import { tokenCheckadmin } from "../Middlewares/tokenCheckadmin .js"
+import { tokenCheckadmin } from "../Middlewares/tokenCheckadmin .js";
 
 const fileName = fileURLToPath(import.meta.url);
 const __dirname = dirname(fileName);
@@ -48,10 +54,27 @@ router.post(
   invoiceApprovalFile.single("ApprovalSS"),
   createInvoiceApproval
 );
-router.get("/getinvoicesforcontractor", tokenCheckcontractor, getApprovedInvoiceofContractor);
-router.get("/getpendinginvoiceforcontractor", tokenCheckcontractor, getPendingInvoice);
+router.get(
+  "/getinvoicesforcontractor",
+  tokenCheckcontractor,
+  getApprovedInvoiceofContractor
+);
+router.get(
+  "/getpendinginvoiceforcontractor",
+  tokenCheckcontractor,
+  getPendingInvoice
+);
 router.patch("/approveinvoice", tokenCheckadmin, approveInvoice);
-router.get("/getapprovedinvoicedforadmin", tokenCheckadmin, getApprovedInvoiceofContractor);
+router.get(
+  "/getapprovedinvoicedforadmin",
+  tokenCheckadmin,
+  getApprovedInvoiceofContractor
+);
 router.get("/getpendinginvoiceforadmin", tokenCheckadmin, getPendingInvoice);
+router.get(
+  "/getsingleapprovedinvoice",
+  tokenCheckcontractor,
+  getSingleApprovedInvoice
+);
 
 export default router;
