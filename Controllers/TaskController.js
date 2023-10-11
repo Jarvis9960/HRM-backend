@@ -214,6 +214,70 @@ export const getownTasks = async (req, res) => {
     });
   }
 };
+
+export const getownTasksAdmin = async (req, res) => {
+  try {
+    const { date, organization, contractorId } = req.query;
+
+    if (!date) {
+      return res
+        .status(400)
+        .json({ status: false, message: "Please provide date" });
+    }
+
+    // Validate the date format (including month and year)
+    const dateFormats = ["DD/MM/YYYY", "MM/YYYY"];
+    const parsedDate = moment(date, dateFormats, true);
+    if (!parsedDate.isValid()) {
+      return res.status(400).json({
+        status: false,
+        message: "Invalid date format. Use DD/MM/YYYY or MM/YYYY",
+      });
+    }
+
+    const dateFormats1 = ["MM/YYYY"];
+    const parsedDate1 = moment(date, dateFormats1, true);
+
+    const dateFormats2 = ["DD/MM/YYYY"];
+    const parsedDate2 = moment(date, dateFormats2, true);
+
+    let tasks;
+    if (parsedDate1.isValid()) {
+      const year = parsedDate.year();
+      const month = parsedDate.month();
+      const startOfMonth = moment([year, month, 1]).startOf("month");
+      const endOfMonth = moment([year, month, 1]).endOf("month");
+      tasks = await TaskModel.find({
+        contractorId,
+        organization: organization,
+        date: { $gte: startOfMonth.toDate(), $lte: endOfMonth.toDate() },
+      }).populate("organization");
+    } else if (parsedDate2.isValid()) {
+      tasks = await TaskModel.find({
+        contractorId,
+        organization: organization,
+        date: parsedDate.toDate(),
+      }).populate("organization");
+    }
+
+    if (tasks.length === 0) {
+      return res
+        .status(404)
+        .json({ status: false, message: "No tasks found for the given date" });
+    }
+
+    res.status(200).json({ status: true, data: tasks });
+  } catch (error) {
+    return res.status(500).json({
+      status: false,
+      message: "Something went wrong",
+      error: error.message,
+    });
+  }
+};
+
+
+
 //Send the email to the contractor
 const transporter = nodemailer.createTransport({
   service: "Gmail",
