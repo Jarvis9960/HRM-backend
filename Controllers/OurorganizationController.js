@@ -59,5 +59,8 @@ export const getOurOwnOrganization = async (req, res) => {
       currentPage: page,
       response: getOwnOrganization,
     });
-  } catch (error) {}
+  } catch (error) {
+    console.log(error);
+    return res.status(500).json({status: false, message: "something went wrong", err: error})
+  }
 };
