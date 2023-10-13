@@ -1,6 +1,10 @@
 import mongoose from "mongoose";
 
 const ClientSchema = new mongoose.Schema({
+  OwnOrganization: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: "ourOrgnaization"
+  },
   clientName: {
     type: String,
     required: true,

@@ -100,6 +100,7 @@ const contractorSchema = new mongoose.Schema(
       {
         id: { type: mongoose.Schema.Types.ObjectId, ref: "Client" },
         amount: Number,
+        businessDays: Number
       },
     ],
     IsApproved: {

@@ -6,9 +6,9 @@ import mongoose from "mongoose";
 
 export const createClient = async (req, res) => {
   try {
-    const { clientName, clientEmail } = req.body;
+    const { clientName, clientEmail, ourOrganizationId } = req.body;
 
-    if (!clientEmail || !clientName) {
+    if (!clientEmail || !clientName || !ourOrganizationId) {
       return res.status(422).json({
         status: false,
         message: "Please provide all the required field properly",
@@ -16,6 +16,7 @@ export const createClient = async (req, res) => {
     }
 
     const clientObj = new ClientModel({
+      OwnOrganization: ourOrganizationId,
       clientName: clientName,
       clientEmail: clientEmail,
     });
@@ -36,13 +37,26 @@ export const createClient = async (req, res) => {
 
 export const getClientForAdmin = async (req, res) => {
   try {
+    const { ourOrganizationId } = req.query;
+
+    if (!ourOrganizationId) {
+      return res.status(422).json({
+        status: false,
+        message: "Please provide Own organization id ",
+      });
+    }
+
     const page = req.query.page || 1;
     const limit = 9;
 
-    const totalClient = await ClientModel.countDocuments();
+    const totalClient = await ClientModel.countDocuments({
+      OwnOrganization: ourOrganizationId,
+    });
     const totalPages = Math.ceil(totalClient / limit);
 
-    const clients = await ClientModel.find()
+    const clients = await ClientModel.find({
+      OwnOrganization: ourOrganizationId,
+    })
       .populate("PO")
       .skip((page - 1) * limit)
       .limit(limit);
@@ -170,7 +184,7 @@ export const createPO = async (req, res) => {
 
 export const updateContractorIntoPo = async (req, res) => {
   try {
-    const { contractorId, poId, contractorAmount } = req.body;
+    const { contractorId, poId, contractorAmount, businessDays } = req.body;
 
     if (!contractorId) {
       return res.status(422).json({
@@ -192,9 +206,17 @@ export const updateContractorIntoPo = async (req, res) => {
         .json({ status: false, message: "Please provide po id to update" });
     }
 
+    if (!businessDays) {
+      return res.status(422).json({
+        status: false,
+        message: "Please provide business days to update",
+      });
+    }
+
     const contractorData = {
       id: contractorId,
       amount: contractorAmount,
+      businessDays: businessDays,
     };
 
     const contractorExists = await POModel.findOne({
