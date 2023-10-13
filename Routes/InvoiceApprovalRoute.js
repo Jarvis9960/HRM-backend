@@ -76,5 +76,10 @@ router.get(
   tokenCheckcontractor,
   getSingleApprovedInvoice
 );
+router.get(
+  "/getsingleapprovedinvoiceadmin",
+  tokenCheckadmin,
+  getSingleApprovedInvoice
+);
 
 export default router;

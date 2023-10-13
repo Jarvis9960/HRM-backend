@@ -45,6 +45,7 @@ const POSchema = new mongoose.Schema({
     {
       id: { type: mongoose.Schema.Types.ObjectId, ref: "Contractor" },
       amount: Number,
+      businessDays: Number
     },
   ],
 });

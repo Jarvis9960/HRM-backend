@@ -902,9 +902,9 @@ export const reupdateContractorProfile = async (req, res) => {
 
 export const updateOrganizationInProfile = async (req, res) => {
   try {
-    const { contractorId, clientId, amount } = req.body;
+    const { contractorId, clientId, amount, businessDays } = req.body;
 
-    if (!contractorId || !clientId || !amount) {
+    if (!contractorId || !clientId || !amount || !businessDays) {
       return res.status(422).json({
         status: false,
         message: "Please provide all the required field properly",
@@ -924,7 +924,7 @@ export const updateOrganizationInProfile = async (req, res) => {
 
     const updateResponse = await ContractorProfileModel.updateOne(
       { _id: contractorId },
-      { $push: { SelfOrganization: { id: clientId, amount: amount } } }
+      { $push: { SelfOrganization: { id: clientId, amount: amount, businessDays: businessDays } } }
     );
 
     if (updateResponse.acknowledged) {
