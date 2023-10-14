@@ -61,6 +61,32 @@ export const getOurOwnOrganization = async (req, res) => {
     });
   } catch (error) {
     console.log(error);
-    return res.status(500).json({status: false, message: "something went wrong", err: error})
+    return res
+      .status(500)
+      .json({ status: false, message: "something went wrong", err: error });
+  }
+};
+
+export const getAllOwnOrganization = async (req, res) => {
+  try {
+    const getOwnOrganization = await ourOrganizationModel.find();
+
+    if (getOwnOrganization.length < 1) {
+      return res.status(404).json({
+        status: true,
+        message: "No Our own organization is present in server",
+      });
+    }
+
+    return res.status(202).json({
+      status: true,
+      message: "successfully fetched our own organization",
+      response: getOwnOrganization,
+    });
+  } catch (error) {
+    console.log(error);
+    return res
+      .status(500)
+      .json({ status: false, message: "something went wrong", err: error });
   }
 };
