@@ -12,6 +12,7 @@ import SendMailRoute from "./Routes/SendMailRoute.js";
 import ClientRoute from "./Routes/ClientRoute.js";
 import PoInvoiceRoute from "./Routes/PoInvoiceRoute.js";
 import InvoiceApprovalRoute from "./Routes/InvoiceApprovalRoute.js";
+import OurOwnOrganizationRoute from "./Routes/ourOrganizationRoute.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 
@@ -63,6 +64,7 @@ app.use("/api", SendMailRoute);
 app.use("/api", ClientRoute);
 app.use("/api", PoInvoiceRoute);
 app.use("/api", InvoiceApprovalRoute);
+app.use("/api", OurOwnOrganizationRoute);
 
 // app to listen on port function
 const PORT = process.env.PORT;
