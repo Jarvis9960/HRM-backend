@@ -3,6 +3,7 @@ import ClientModel from "../Models/ClientModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import POModel from "../Models/POModel.js";
 import mongoose from "mongoose";
+import poInvoiceModel from "../Models/PoInvoiceModel.js";
 
 export const createClient = async (req, res) => {
   try {
@@ -352,6 +353,53 @@ export const deleteContractorFromPO = async (req, res) => {
     }
   } catch (error) {
     console.log(error);
+    return res
+      .status(500)
+      .json({ status: false, message: "something went wrong", err: error });
+  }
+};
+
+export const getInvoiceData = async (req, res) => {
+  try {
+    const { poId } = req.query;
+
+    if (!poId) {
+      return res.status(422).json({
+        status: false,
+        message: "Please provide poID for po invoices data",
+      });
+    }
+
+    const getData = await poInvoiceModel
+      .find({ Poid: poId })
+      .populate("ContractorId");
+
+    if (getData.length < 1) {
+      return res.status(202).json({
+        status: true,
+        message: "No invoice has been created from this po",
+      });
+    }
+
+    const totalInvoices = getData.length;
+    const totalAmount = getData.reduce((prev, curr) => {
+      return prev + curr.Amount;
+    }, 0);
+
+    const po = await POModel.findById(poId);
+
+    const totalPOAmount = po.POAmount;
+    const remainingAmount = totalPOAmount - totalAmount;
+
+    return res.status(202).json({
+      status: true,
+      message: "successfully fetched po data",
+      totalInvoices,
+      totalAmount,
+      totalPOAmount,
+      remainingAmount,
+    });
+  } catch (error) {
     return res
       .status(500)
       .json({ status: false, message: "something went wrong", err: error });
