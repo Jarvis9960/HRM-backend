@@ -10,7 +10,7 @@ import ContractorModel from "../Models/ContractorModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import { generateRandomPassword } from "../Utils/PasswordUtil.js";
 import { populate } from "dotenv";
-import { io } from "../index.js";
+import eventEmitter from "../Utils/eventEmitter.js";
 
 // Create Contractor
 export const createContractor = async (req, res) => {
@@ -335,11 +335,9 @@ export const updatecontractorprofile = async (req, res) => {
       { profileId: updatecontractorprofile._id }
     );
 
-    console.log(profileId);
-
     if (profileId) {
-      io.emit("contractorupdate", {
-        profileId: profileId,
+      eventEmitter.emit("contractorupdate", {
+        profile: profileId,
         message: `${profileId.first_name} ${profileId.last_name} has successfully updated profile`,
       });
     }
