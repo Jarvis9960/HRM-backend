@@ -83,12 +83,17 @@ app.use("/api", PoInvoiceRoute);
 app.use("/api", InvoiceApprovalRoute);
 app.use("/api", OurOwnOrganizationRoute);
 
-//  socket io connection code 
+//  socket io connection code
 io.on("connection", async (socket) => {
-    console.log("connection is successfull to socket " + socket);
-})
+  console.log("connection is successfull to socket");
 
+  socket.on("contractorupdate", (data) => {
+    console.log(data);
+    socket.emit("contractorupdatetoadmin", data);
+  });
+});
 
+export { io };
 
 // app to listen on port function
 const PORT = process.env.PORT;

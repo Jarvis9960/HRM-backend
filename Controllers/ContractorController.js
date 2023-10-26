@@ -10,6 +10,7 @@ import ContractorModel from "../Models/ContractorModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import { generateRandomPassword } from "../Utils/PasswordUtil.js";
 import { populate } from "dotenv";
+import { io } from "../index.js";
 
 // Create Contractor
 export const createContractor = async (req, res) => {
@@ -335,6 +336,13 @@ export const updatecontractorprofile = async (req, res) => {
     );
 
     console.log(profileId);
+
+    if (profileId) {
+      io.emit("contractorupdate", {
+        profileId: profileId,
+        message: `${profileId.first_name} ${profileId.last_name} has successfully updated profile`,
+      });
+    }
 
     // Send email notification to admin
     const transporter = nodemailer.createTransport({
@@ -924,7 +932,15 @@ export const updateOrganizationInProfile = async (req, res) => {
 
     const updateResponse = await ContractorProfileModel.updateOne(
       { _id: contractorId },
-      { $push: { SelfOrganization: { id: clientId, amount: amount, businessDays: businessDays } } }
+      {
+        $push: {
+          SelfOrganization: {
+            id: clientId,
+            amount: amount,
+            businessDays: businessDays,
+          },
+        },
+      }
     );
 
     if (updateResponse.acknowledged) {
