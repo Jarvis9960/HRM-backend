@@ -15,8 +15,11 @@ import InvoiceApprovalRoute from "./Routes/InvoiceApprovalRoute.js";
 import OurOwnOrganizationRoute from "./Routes/ourOrganizationRoute.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
+import http from "http";
+import { Server } from "socket.io";
 
 const app = express();
+const server = http.createServer(app);
 
 const fileName = fileURLToPath(import.meta.url);
 const __dirname = dirname(fileName);
@@ -48,6 +51,20 @@ app.use(
   })
 );
 
+const io = new Server(server, {
+  pingTimeout: 60000,
+  cors: {
+    origin: (origin, callback) => {
+      if (allowedOrigins.includes(origin) || !origin) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+  },
+});
+
 // database connection function
 connectDb()
   .then((res) => {
@@ -66,8 +83,15 @@ app.use("/api", PoInvoiceRoute);
 app.use("/api", InvoiceApprovalRoute);
 app.use("/api", OurOwnOrganizationRoute);
 
+//  socket io connection code 
+io.on("connection", async (socket) => {
+    console.log("connection is successfull to socket " + socket);
+})
+
+
+
 // app to listen on port function
 const PORT = process.env.PORT;
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`server is listening on port ${PORT}`);
 });
