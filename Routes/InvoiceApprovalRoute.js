@@ -11,7 +11,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import path from "path";
 import multer from "multer";
-import { tokenCheckcontractor } from "../Middlewares/tokenCheckcontractor.js";
+import { tokenCheckcontractor } from "../Middlewares/tokenCheckContractor.js";
 import { tokenCheckadmin } from "../Middlewares/tokenCheckadmin .js";
 
 const fileName = fileURLToPath(import.meta.url);

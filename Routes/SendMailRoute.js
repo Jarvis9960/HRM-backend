@@ -5,7 +5,7 @@ import {
   microsoftLoginController,
   sendMailFromContractorMail,
 } from "../Controllers/SendMailController.js";
-import { tokenCheckcontractor } from "../Middlewares/tokenCheckcontractor.js";
+import { tokenCheckcontractor } from "../Middlewares/tokenCheckContractor.js";
 import multer from "multer";
 import { fileURLToPath } from "url";
 import path, { dirname } from "path";
