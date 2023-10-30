@@ -17,6 +17,7 @@ import { fileURLToPath } from "url";
 import { dirname } from "path";
 import http from "http";
 import { Server } from "socket.io";
+import eventEmitter from "./Utils/eventEmitter.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -87,13 +88,11 @@ app.use("/api", OurOwnOrganizationRoute);
 io.on("connection", async (socket) => {
   console.log("connection is successfull to socket");
 
-  socket.on("contractorupdate", (data) => {
-    console.log(data);
-    socket.emit("contractorupdatetoadmin", data);
+  eventEmitter.on("contractorupdate", (data) => {
+    console.log(data)
+     socket.emit("contractorupdatetoadmin", data)
   });
 });
-
-export { io };
 
 // app to listen on port function
 const PORT = process.env.PORT;
