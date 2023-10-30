@@ -19,7 +19,7 @@ import {
 
 import { storage, checkFileType } from "../Middlewares/multerMiddleware.js";
 import { tokenCheckadmin } from "../Middlewares/tokenCheckadmin .js";
-import { tokenCheckcontractor } from "../Middlewares/tokenCheckcontractor.js";
+import { tokenCheckcontractor } from "../Middlewares/tokenCheckContractor.js";
 import multer from "multer";
 
 const multerUpload = multer({
