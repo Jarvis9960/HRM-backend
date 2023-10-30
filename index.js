@@ -16,7 +16,7 @@ import OurOwnOrganizationRoute from "./Routes/ourOrganizationRoute.js";
 import { fileURLToPath } from "url";
 import { dirname } from "path";
 import http from "http";
-import { Server } from "socket.io";
+// import { Server } from "socket.io";
 import eventEmitter from "./Utils/eventEmitter.js";
 
 const app = express();
@@ -52,19 +52,19 @@ app.use(
   })
 );
 
-const io = new Server(server, {
-  pingTimeout: 60000,
-  cors: {
-    origin: (origin, callback) => {
-      if (allowedOrigins.includes(origin) || !origin) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
-    credentials: true,
-  },
-});
+// const io = new Server(server, {
+//   pingTimeout: 60000,
+//   cors: {
+//     origin: (origin, callback) => {
+//       if (allowedOrigins.includes(origin) || !origin) {
+//         callback(null, true);
+//       } else {
+//         callback(new Error("Not allowed by CORS"));
+//       }
+//     },
+//     credentials: true,
+//   },
+// });
 
 // database connection function
 connectDb()
@@ -84,15 +84,15 @@ app.use("/api", PoInvoiceRoute);
 app.use("/api", InvoiceApprovalRoute);
 app.use("/api", OurOwnOrganizationRoute);
 
-//  socket io connection code
-io.on("connection", async (socket) => {
-  console.log("connection is successfull to socket");
+// //  socket io connection code
+// io.on("connection", async (socket) => {
+//   console.log("connection is successfull to socket");
 
-  eventEmitter.on("contractorupdate", (data) => {
-    console.log(data)
-     socket.emit("contractorupdatetoadmin", data)
-  });
-});
+//   eventEmitter.on("contractorupdate", (data) => {
+//     console.log(data)
+//      socket.emit("contractorupdatetoadmin", data)
+//   });
+// });
 
 // app to listen on port function
 const PORT = process.env.PORT;
