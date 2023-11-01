@@ -22,10 +22,25 @@ import { tokenCheckadmin } from "../Middlewares/tokenCheckadmin .js";
 import { tokenCheckcontractor } from "../Middlewares/tokenCheckContractor.js";
 import multer from "multer";
 
+const maxSize = 5 * 1024 * 1024; // 5MB (in bytes)
+
 const multerUpload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   fileFilter: function (req, file, cb) {
-    checkFileType(file, cb);
+    checkFileType(file, (error, isAllowed) => {
+      if (error) {
+        return cb(error);
+      }
+      if (isAllowed) {
+        if (file.size <= maxSize) {
+          cb(null, true);
+        } else {
+          cb(new Error("File size exceeds the 5MB limit"));
+        }
+      } else {
+        cb(new Error("Invalid file type"));
+      }
+    });
   },
 });
 
