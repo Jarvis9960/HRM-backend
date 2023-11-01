@@ -9,8 +9,8 @@ const passwordValidation =
 import ContractorModel from "../Models/ContractorModel.js";
 import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import { generateRandomPassword } from "../Utils/PasswordUtil.js";
-import { populate } from "dotenv";
 import eventEmitter from "../Utils/eventEmitter.js";
+import { bucket, bucketName } from "../Utils/googleStorage.js";
 
 // Create Contractor
 export const createContractor = async (req, res) => {
@@ -282,10 +282,17 @@ export const updatecontractorprofile = async (req, res) => {
         .json({ status: false, message: "BeneficaiaryPanNo already exist" });
     }
 
-    const actualPanLink = files.actualPanImage[0].path;
-    const actualAadharLink = files.actualAdharImage[0].path;
-    const beneficiaryPanLink = files.beneficiaryPanImage[0].path;
-    const beneficiaryAadharLink = files.beneficiaryAadharImage[0].path;
+    const actualPanLink = files.actualPanImage[0];
+    const actualAadharLink = files.actualAdharImage[0];
+    const beneficiaryPanLink = files.beneficiaryPanImage[0];
+    const beneficiaryAadharLink = files.beneficiaryAadharImage[0];
+
+    const documents = [
+      actualPanLink,
+      actualAadharLink,
+      beneficiaryPanLink,
+      beneficiaryAadharLink,
+    ];
 
     if (
       !actualPanLink ||
@@ -300,73 +307,124 @@ export const updatecontractorprofile = async (req, res) => {
       });
     }
 
-    const birthdayDateObject = new Date(birthday);
-    const joiningDateObject = new Date(joinDate);
+    let uploaded = [];
 
-    const updatecontractorprofile = await ContractorProfileModel.create({
-      ActualName: actualName,
-      ActualAadharNo: actualAadharNo,
-      ActualPanNo: actualPanNo,
-      ActualPanImageLink: actualPanLink,
-      ActualAdharImageLink: actualAadharLink,
-      BeneficiaryName: beneficiaryName,
-      BeneficiaryAadharNo: beneficiaryAadharNo,
-      BeneficiaryPanNo: beneficiaryPanNo,
-      BeneficiaryPanImageLink: beneficiaryPanLink,
-      BeneficiaryAadharImageLink: beneficiaryAadharLink,
-      BankName: bankName,
-      BankAccNo: bankAccNo,
-      IFSCcode: ifscCode,
-      ContractName: contractName,
-      JoinDate: joiningDateObject,
-      Birthday: birthdayDateObject,
-      Address: address,
-      Gender: gender,
-      ReportTo: reportTo,
-      Nationality: nationality,
-      Religion: religion,
-      EmergencyContactName: emergencyContactName,
-      EmergencyContactRelation: emergencyContactRelation,
-      EmergencyContactNumber: emergencyContactNumber,
-    });
+    // Promises for tracking the completion of file uploads
+    const uploadPromises = [];
 
-    const profileId = await ContractorModel.findByIdAndUpdate(
-      { _id: req.user._id },
-      { profileId: updatecontractorprofile._id }
-    );
-
-    if (profileId) {
-      eventEmitter.emit("contractorupdate", {
-        profile: profileId,
-        message: `${profileId.first_name} ${profileId.last_name} has successfully updated profile`,
+    for (let i = 0; i < documents.length; i++) {
+      const blob = bucket.file(documents[i].originalname);
+      const blobStream = blob.createWriteStream({
+        resumable: false,
       });
+
+      blobStream.on("error", (err) => {
+        console.log("Error uploading file: " + err);
+        // Handle the error here
+      });
+
+      // Create a promise for each file upload
+      const uploadPromise = new Promise((resolve, reject) => {
+        blobStream.on("finish", async () => {
+          console.log(`${i} file uploaded`);
+          const imageInfo = await bucket.file(documents[i].originalname);
+
+          imageInfo
+            .get()
+            .then((resp) => {
+              const url = `${resp[0].storage.apiEndpoint}/${resp[0].bucket.id}/${resp[0].id}`;
+              uploaded.push(url);
+              resolve(url);
+            })
+            .catch((err) => {
+              // Handle the error here
+              reject(err);
+            });
+        });
+
+        blobStream.end(documents[i].buffer);
+      });
+
+      uploadPromises.push(uploadPromise);
     }
 
-    // Send email notification to admin
-    const transporter = nodemailer.createTransport({
-      service: "Gmail",
-      auth: {
-        user: process.env.EMAIL,
-        pass: process.env.PASS,
-      },
-    });
+    // Wait for all file uploads to complete
+    Promise.all(uploadPromises)
+      .then(async () => {
+        const birthdayDateObject = new Date(birthday);
+        const joiningDateObject = new Date(joinDate);
 
-    const mailOptions = {
-      from: "exactsshubham@gmail.com",
-      to: "ankitfukte11@gmail.com",
-      subject: "Contractor Profile Updated",
-      text: `The profile for contractor ${updatecontractorprofile.ActualName} with aadharNumber ${updatecontractorprofile.ActualAadharNo} has been updated.`,
-    };
+        const updatecontractorprofile = await ContractorProfileModel.create({
+          ActualName: actualName,
+          ActualAadharNo: actualAadharNo,
+          ActualPanNo: actualPanNo,
+          ActualPanImage: uploaded[0],
+          ActualAdharImage: uploaded[1],
+          BeneficiaryName: beneficiaryName,
+          BeneficiaryAadharNo: beneficiaryAadharNo,
+          BeneficiaryPanNo: beneficiaryPanNo,
+          BeneficiaryPanImage: uploaded[2],
+          BeneficiaryAadharImage: uploaded[3],
+          BankName: bankName,
+          BankAccNo: bankAccNo,
+          IFSCcode: ifscCode,
+          ContractName: contractName,
+          JoinDate: joiningDateObject,
+          Birthday: birthdayDateObject,
+          Address: address,
+          Gender: gender,
+          ReportTo: reportTo,
+          Nationality: nationality,
+          Religion: religion,
+          EmergencyContactName: emergencyContactName,
+          EmergencyContactRelation: emergencyContactRelation,
+          EmergencyContactNumber: emergencyContactNumber,
+        });
 
-    transporter.sendMail(mailOptions, (error, info) => {
-      if (error) {
-        console.error("Error sending email: ", error);
-      } else {
-        console.log("Email sent", info.response);
-      }
-    });
-    res.status(201).json({ status: true, message: "Successfully Updated" });
+        const profileId = await ContractorModel.findByIdAndUpdate(
+          { _id: req.user._id },
+          { profileId: updatecontractorprofile._id }
+        );
+
+        if (profileId) {
+          eventEmitter.emit("contractorupdate", {
+            profile: profileId,
+            message: `${profileId.first_name} ${profileId.last_name} has successfully updated profile`,
+          });
+        }
+
+        // Send email notification to admin
+        const transporter = nodemailer.createTransport({
+          service: "Gmail",
+          auth: {
+            user: process.env.EMAIL,
+            pass: process.env.PASS,
+          },
+        });
+
+        const mailOptions = {
+          from: "exactsshubham@gmail.com",
+          to: "ankitfukte11@gmail.com",
+          subject: "Contractor Profile Updated",
+          text: `The profile for contractor ${updatecontractorprofile.ActualName} with aadharNumber ${updatecontractorprofile.ActualAadharNo} has been updated.`,
+        };
+
+        transporter.sendMail(mailOptions, (error, info) => {
+          if (error) {
+            console.error("Error sending email: ", error);
+          } else {
+            console.log("Email sent", info.response);
+          }
+        });
+        res.status(201).json({ status: true, message: "Successfully Updated" });
+      })
+      .catch((err) => {
+        console.error("Error uploading files:", err);
+        // Handle the error here
+        throw new Error(err);
+      });
   } catch (err) {
+    console.log(err);
     res.status(500).json({ status: false, message: err.message });
   }
 };

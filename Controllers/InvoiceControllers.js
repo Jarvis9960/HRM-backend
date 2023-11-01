@@ -1,5 +1,6 @@
 import moment from "moment";
 import InvoiceApprovalModel from "../Models/InvoiceApproval.js";
+import { bucket, bucketName } from "../Utils/googleStorage.js";
 
 export const createInvoiceApproval = async (req, res) => {
   try {
@@ -13,6 +14,8 @@ export const createInvoiceApproval = async (req, res) => {
     }
 
     const approvalScreenshot = req.file;
+    const fileName = approvalScreenshot.originalname;
+    let filePath;
 
     if (!approvalScreenshot) {
       return res.status(422).json({
@@ -21,26 +24,58 @@ export const createInvoiceApproval = async (req, res) => {
       });
     }
 
-    const invoiceDate = moment({ year, month: month - 1 }) // Subtract 1 from the month number since moment.js months are 0-based (0 for January)
-      .add(1, "month") // Add one month to the date
-      .toDate(); // Convert the moment object to a JavaScript Date object
-
-    const newInvoiceApproval = new InvoiceApprovalModel({
-      contractorId: req.user._id,
-      clientId: clientId,
-      amount: amount,
-      InvoiceMonth: invoiceDate,
-      ApprovalScreenshot: approvalScreenshot.path,
+    const blob = bucket.file(approvalScreenshot.originalname);
+    const blobStream = blob.createWriteStream({
+      resumable: false,
     });
 
-    const savedResponse = await newInvoiceApproval.save();
+    blobStream.on("error", (err) => {
+      console.log("Error uploading file: " + err);
 
-    if (savedResponse) {
-      return res.status(202).json({
-        status: true,
-        message: "Successfully created invoice approval",
+      return res.status(500).json({
+        status: false,
+        message: "Error uploading approval screenshot",
+        error: err,
       });
-    }
+    });
+
+    blobStream.on("finish", async () => {
+      console.log("File uploaded!");
+
+      const invoiceDate = moment({ year, month: month - 1 }) // Subtract 1 from the month number since moment.js months are 0-based (0 for January)
+        .add(1, "month") // Add one month to the date
+        .toDate(); // Convert the moment object to a JavaScript Date object
+
+      const imageInfo = await bucket.file(fileName);
+
+      imageInfo
+        .get()
+        .then(async (resp) => {
+          filePath = `${resp[0].storage.apiEndpoint}/${resp[0].bucket.id}/${resp[0].id}`;
+
+          const newInvoiceApproval = new InvoiceApprovalModel({
+            contractorId: req.user._id,
+            clientId: clientId,
+            amount: amount,
+            InvoiceMonth: invoiceDate,
+            ApprovalScreenshot: filePath,
+          });
+
+          const savedResponse = await newInvoiceApproval.save();
+
+          if (savedResponse) {
+            return res.status(202).json({
+              status: true,
+              message: "Successfully created invoice approval",
+            });
+          }
+        })
+        .catch((err) => {
+          throw new Error("Cannot Get Image in bucket");
+        });
+    });
+
+    blobStream.end(approvalScreenshot.buffer);
   } catch (error) {
     console.log(error);
     return res
@@ -184,12 +219,10 @@ export const getSingleApprovedInvoice = async (req, res) => {
     const { invoiceId } = req.query;
 
     if (!invoiceId) {
-      return res
-        .status(422)
-        .json({
-          status: false,
-          message: "Please Provide invoice id to view invoice",
-        });
+      return res.status(422).json({
+        status: false,
+        message: "Please Provide invoice id to view invoice",
+      });
     }
 
     const savedInvoice = await InvoiceApprovalModel.findOne({
@@ -197,21 +230,17 @@ export const getSingleApprovedInvoice = async (req, res) => {
     }).populate("contractorId clientId");
 
     if (!savedInvoice) {
-      return res
-        .status(404)
-        .json({
-          status: false,
-          message: "No Invoice is present with given id",
-        });
+      return res.status(404).json({
+        status: false,
+        message: "No Invoice is present with given id",
+      });
     }
 
-    return res
-      .status(202)
-      .json({
-        status: true,
-        message: "successfully fetched single invoice",
-        singleInvoice: savedInvoice,
-      });
+    return res.status(202).json({
+      status: true,
+      message: "successfully fetched single invoice",
+      singleInvoice: savedInvoice,
+    });
   } catch (error) {
     return res
       .status(500)
