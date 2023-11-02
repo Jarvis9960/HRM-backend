@@ -668,6 +668,9 @@ export const getowndetailsofContractor = async function (req, res) {
       select: "-password",
       populate: {
         path: "SelfOrganization",
+        populate: {
+          path: "id", 
+        },
       },
     });
     if (!contractor) {
