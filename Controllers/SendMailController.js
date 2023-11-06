@@ -17,7 +17,7 @@ export const getUserConsent = (req, res) => {
     client_id: process.env.MICROSOFT_CLIENT_ID,
     response_type: "code",
     redirect_uri:
-      "https://braided-complex-403612.el.r.appspot.com/api/get-access-token-microsoft",
+      "http://localhost:5000/api/get-access-token-microsoft",
     scope: "https://graph.microsoft.com/.default",
     state: "AjileDone",
   });
@@ -39,7 +39,7 @@ export const microsoftLoginController = async (req, res) => {
         client_secret: process.env.MICROSOFT_CLIENT_SECRET,
         code: code,
         redirect_uri:
-          "https://braided-complex-403612.el.r.appspot.com/api/get-access-token-microsoft",
+          "http://localhost:5000/api/get-access-token-microsoft",
       }),
       {
         headers: {
@@ -53,9 +53,8 @@ export const microsoftLoginController = async (req, res) => {
     // Now you can use the access token to make authorized requests to Microsoft Graph API
     // Set the access token as a cookie
     res.cookie("accessToken", accessToken, {
-      domain: "localhost",
-      httpOnly: false, // Make the cookie accessible only via HTTP (not JavaScript)
-      sameSite: "strict", // Enforce same-site policy for security
+      httpOnly: true, // Make the cookie accessible only via HTTP (not JavaScript)
+      sameSite: "none", // Enforce same-site policy for security
       maxAge: 36000, // Set the cookie expiration time in seconds (e.g., 1 day)
       path: "/", // Set the cookie path to '/' so it's accessible across the entire site
     });
@@ -63,7 +62,9 @@ export const microsoftLoginController = async (req, res) => {
     console.log(accessToken);
 
     // Redirect to the frontend URL
-    res.redirect("https://driven-utility-403612.el.r.appspot.com"); // Adjust this URL as needed
+    res.redirect(
+      `http://localhost:3000/calender?accessToken=${accessToken}`
+    ); // Adjust this URL as needed
   } catch (error) {
     console.log(error);
     res.status(500).json({ err: error });
