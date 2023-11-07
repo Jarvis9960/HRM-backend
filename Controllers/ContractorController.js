@@ -401,8 +401,6 @@ export const updatecontractorprofile = async (req, res) => {
             ],
           }));
 
-          console.log(notifications);
-
           // Create an array of notifications for all admin users
           const createdNotifications = await NotificationModel.create(
             notifications
