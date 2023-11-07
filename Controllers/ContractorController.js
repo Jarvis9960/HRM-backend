@@ -391,11 +391,13 @@ export const updatecontractorprofile = async (req, res) => {
         if (profileId) {
           const getAllAdmin = await AdminModel.find();
 
+          const message = `${profileId.first_name} ${profileId.last_name} has successfully updated profile`;
+
           const notifications = getAllAdmin.map((admin) => ({
-            Message: data.message,
+            Message: message,
             Profile: [
               { type: "Admin", ref: admin._id },
-              { type: "Contractor", ref: data.profile._id },
+              { type: "Contractor", ref: profileId },
             ],
           }));
 
@@ -407,7 +409,7 @@ export const updatecontractorprofile = async (req, res) => {
           );
           eventEmitter.emit("contractorupdate", {
             profile: profileId,
-            message: `${profileId.first_name} ${profileId.last_name} has successfully updated profile`,
+            message: message,
           });
         }
 
