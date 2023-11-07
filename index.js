@@ -18,8 +18,7 @@ import { dirname } from "path";
 import http from "http";
 import { Server } from "socket.io";
 import eventEmitter from "./Utils/eventEmitter.js";
-import NotificationModel from "./Models/Notification.js";
-import AdminModel from "./Models/AdminModel.js";
+import NotificationRoute from "./Routes/NotificationRoute.js";
 
 const app = express();
 const server = http.createServer(app);
@@ -87,13 +86,13 @@ app.use("/api", ClientRoute);
 app.use("/api", PoInvoiceRoute);
 app.use("/api", InvoiceApprovalRoute);
 app.use("/api", OurOwnOrganizationRoute);
+app.use("/api", NotificationRoute);
 
 //  socket io connection code
 io.on("connection", async (socket) => {
   console.log("connection is successfull to socket");
 
   eventEmitter.on("contractorupdate", async (data) => {
-    
     socket.emit("contractorupdatetoadmin", data);
   });
 
