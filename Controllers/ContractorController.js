@@ -405,6 +405,7 @@ export const updatecontractorprofile = async (req, res) => {
           const createdNotifications = await NotificationModel.create(
             notifications
           );
+          console.log(createdNotifications);
           eventEmitter.emit("contractorupdate", {
             profile: profileId,
             message: message,
