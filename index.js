@@ -93,19 +93,7 @@ io.on("connection", async (socket) => {
   console.log("connection is successfull to socket");
 
   eventEmitter.on("contractorupdate", async (data) => {
-    const getAllAdmin = await AdminModel.find();
-
-    const notifications = getAllAdmin.map((admin) => ({
-      Message: data.message,
-      Profile: [
-        { type: "Admin", ref: admin._id },
-        { type: "Contractor", ref: data.profile._id },
-      ],
-    }));
-
-    // Create an array of notifications for all admin users
-    const createdNotifications = await NotificationModel.create(notifications);
-
+    
     socket.emit("contractorupdatetoadmin", data);
   });
 

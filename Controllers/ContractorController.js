@@ -11,6 +11,8 @@ import ContractorProfileModel from "../Models/ContractorProfileModel.js";
 import { generateRandomPassword } from "../Utils/PasswordUtil.js";
 import eventEmitter from "../Utils/eventEmitter.js";
 import { bucket, bucketName } from "../Utils/googleStorage.js";
+import AdminModel from "../Models/AdminModel.js";
+import NotificationModel from "../Models/Notification.js";
 
 // Create Contractor
 export const createContractor = async (req, res) => {
@@ -387,6 +389,22 @@ export const updatecontractorprofile = async (req, res) => {
         );
 
         if (profileId) {
+          const getAllAdmin = await AdminModel.find();
+
+          const notifications = getAllAdmin.map((admin) => ({
+            Message: data.message,
+            Profile: [
+              { type: "Admin", ref: admin._id },
+              { type: "Contractor", ref: data.profile._id },
+            ],
+          }));
+
+          console.log(notifications);
+
+          // Create an array of notifications for all admin users
+          const createdNotifications = await NotificationModel.create(
+            notifications
+          );
           eventEmitter.emit("contractorupdate", {
             profile: profileId,
             message: `${profileId.first_name} ${profileId.last_name} has successfully updated profile`,
@@ -669,7 +687,7 @@ export const getowndetailsofContractor = async function (req, res) {
       populate: {
         path: "SelfOrganization",
         populate: {
-          path: "id", 
+          path: "id",
         },
       },
     });
