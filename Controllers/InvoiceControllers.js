@@ -2,6 +2,8 @@ import moment from "moment";
 import InvoiceApprovalModel from "../Models/InvoiceApproval.js";
 import { bucket, bucketName } from "../Utils/googleStorage.js";
 import eventEmitter from "../Utils/eventEmitter.js";
+import AdminModel from "../Models/AdminModel.js";
+import NotificationModel from "../Models/Notification.js";
 
 export const createInvoiceApproval = async (req, res) => {
   try {
@@ -65,10 +67,24 @@ export const createInvoiceApproval = async (req, res) => {
           const savedResponse = await newInvoiceApproval.save();
 
           if (savedResponse) {
-            eventEmitter.emit("Contractoraddinvoice", {
-              message: `${req.user.first_name} ${req.user.last_name} has just applied for invoice.`,
-              profile: req.user,
-            });
+            const getAllAdmin = await AdminModel.find();
+
+            const message = `${req.user.first_name} ${req.user.last_name} has just applied for invoice.`;
+
+            const notifications = getAllAdmin.map((admin) => ({
+              Message: message,
+              Profile: [
+                { type: "Admin", ref: admin._id },
+                { type: "Contractor", ref: req.user._id },
+              ],
+            }));
+
+            // Create an array of notifications for all admin users
+            const createdNotifications = await NotificationModel.create(
+              notifications
+            );
+
+            eventEmitter.emit("Contractoraddinvoice", createdNotifications);
             return res.status(202).json({
               status: true,
               message: "Successfully created invoice approval",
