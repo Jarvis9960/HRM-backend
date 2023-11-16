@@ -405,7 +405,7 @@ export const updatecontractorprofile = async (req, res) => {
           const createdNotifications = await NotificationModel.create(
             notifications
           );
-          
+
           eventEmitter.emit("contractorupdate", createdNotifications);
         }
 
@@ -561,6 +561,14 @@ export const approveContractor = async (req, res) => {
     );
 
     if (approvedContactor.acknowledged) {
+      const notifications = new NotificationModel({
+        Message: `Invoice has been successfully approved`,
+        Profile: [{ type: "Contractor", ref: contractorId }],
+      });
+
+      const createdNotifications = await notifications.save();
+
+      eventEmitter.emit("contractorprofileapprove", createdNotifications);
       return res
         .status(201)
         .json({ status: true, message: "Successfully approved contractor" });
@@ -598,6 +606,14 @@ export const declineContractor = async (req, res) => {
     );
 
     if (approvedContractor.acknowledged) {
+      const notifications = new NotificationModel({
+        Message: `Invoice has been successfully approved`,
+        Profile: [{ type: "Contractor", ref: contractorId }],
+      });
+
+      const createdNotifications = await notifications.save();
+
+      eventEmitter.emit("contractorprofiledecline", createdNotifications);
       // Send email to the contractor
       const transporter = nodemailer.createTransport({
         service: "Gmail",

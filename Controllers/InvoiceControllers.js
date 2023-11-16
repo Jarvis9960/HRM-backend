@@ -223,7 +223,17 @@ export const approveInvoice = async (req, res) => {
       { $set: { isApproved: true, isPending: false, isReject: false } }
     );
 
+    const getInvoice = await InvoiceApprovalModel.findOne({ _id: invoiceId });
+
     if (updateInvoice.acknowledged) {
+      const notifications = new NotificationModel({
+        Message: `Invoice has been successfully approved`,
+        Profile: [{ type: "Contractor", ref: getInvoice.contractorId }],
+      });
+
+      const createdNotifications = await notifications.save();
+
+      eventEmitter.emit("contractorinvoiceapprove", createdNotifications);
       return res
         .status(201)
         .json({ status: true, message: "Invoice successfully approved" });
