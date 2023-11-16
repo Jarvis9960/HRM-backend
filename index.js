@@ -100,6 +100,18 @@ io.on("connection", async (socket) => {
     console.log(data);
     socket.emit("contractoraddinvoicetoadmin", data);
   });
+
+  eventEmitter.on("contractorinvoiceapprove", (data) => {
+    socket.emit("contractorinvoiceapprovesocket", data);
+  });
+
+  eventEmitter.on("contractorprofileapprove", (data) => {
+    socket.emit("contractorprofileapprovesocket", data);
+  });
+
+  eventEmitter.on("contractorprofiledecline", (data) => {
+    socket.emit("contractorprofiledeclinesocket", data);
+  });
 });
 
 // app to listen on port function
