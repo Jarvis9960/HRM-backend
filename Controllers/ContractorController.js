@@ -399,6 +399,7 @@ export const updatecontractorprofile = async (req, res) => {
               { type: "Admin", ref: admin._id },
               { type: "Contractor", ref: profileId },
             ],
+            NotificationFor: "Admin",
           }));
 
           // Create an array of notifications for all admin users
@@ -564,6 +565,7 @@ export const approveContractor = async (req, res) => {
       const notifications = new NotificationModel({
         Message: `Invoice has been successfully approved`,
         Profile: [{ type: "Contractor", ref: contractorId }],
+        NotificationFor: "Contractor"
       });
 
       const createdNotifications = await notifications.save();
@@ -609,6 +611,7 @@ export const declineContractor = async (req, res) => {
       const notifications = new NotificationModel({
         Message: `Invoice has been successfully approved`,
         Profile: [{ type: "Contractor", ref: contractorId }],
+        NotificationFor: "Contractor"
       });
 
       const createdNotifications = await notifications.save();

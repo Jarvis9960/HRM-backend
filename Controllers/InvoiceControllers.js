@@ -77,6 +77,7 @@ export const createInvoiceApproval = async (req, res) => {
                 { type: "Admin", ref: admin._id },
                 { type: "Contractor", ref: req.user._id },
               ],
+              NotificationFor: "Admin"
             }));
 
             // Create an array of notifications for all admin users
@@ -229,6 +230,7 @@ export const approveInvoice = async (req, res) => {
       const notifications = new NotificationModel({
         Message: `Invoice has been successfully approved`,
         Profile: [{ type: "Contractor", ref: getInvoice.contractorId }],
+        NotificationFor: "Contractor"
       });
 
       const createdNotifications = await notifications.save();
