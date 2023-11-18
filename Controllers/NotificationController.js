@@ -7,6 +7,7 @@ export const getNotificationForAdmin = async (req, res) => {
     const getNotification = await NotificationModel.find({
       "Profile.type": "Admin",
       "Profile.ref": adminId,
+      NotificationFor: "Admin",
     })
       .populate("Profile.ref")
       .populate({
@@ -43,6 +44,7 @@ export const getNotificationforContractors = async (req, res) => {
     const getNotification = await NotificationModel.find({
       "Profile.type": "Contractor",
       "Profile.ref": contractorId,
+      NotificationFor: "Contractor",
     })
       .populate("Profile.ref")
       .populate({
