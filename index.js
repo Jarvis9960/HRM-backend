@@ -97,7 +97,6 @@ io.on("connection", async (socket) => {
   });
 
   eventEmitter.on("Contractoraddinvoice", (data) => {
-    console.log(data);
     socket.emit("contractoraddinvoicetoadmin", data);
   });
 
