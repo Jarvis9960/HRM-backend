@@ -26,6 +26,13 @@ const notificationSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    Icon: {
+      type: Boolean,
+      default: false,
+    },
+    Type: {
+      type: String,
+    }
   },
   { timestamps: true }
 );

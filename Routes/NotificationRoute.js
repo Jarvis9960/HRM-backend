@@ -3,6 +3,7 @@ import { tokenCheckadmin } from "../Middlewares/tokenCheckadmin .js";
 import {
   getNotificationForAdmin,
   getNotificationforContractors,
+  makeIconReadAdmin,
   makeNotificationRead,
 } from "../Controllers/NotificationController.js";
 import { tokenCheckcontractor } from "../Middlewares/tokenCheckContractor.js";
@@ -19,5 +20,6 @@ router.get(
   getNotificationforContractors
 );
 router.patch("/makenotificationread", tokenCheckadmin, makeNotificationRead);
+router.patch("/makeiconreadadmin", tokenCheckadmin, makeIconReadAdmin)
 
 export default router;

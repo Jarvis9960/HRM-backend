@@ -101,4 +101,39 @@ export const makeNotificationRead = async (req, res) => {
   }
 };
 
+export const makeIconReadAdmin = async (req, res) => {
+  try {
+    const adminId = req.user._id;
 
+    const getNotification = await NotificationModel.find({
+      "Profile.type": "Admin",
+      "Profile.ref": adminId,
+      NotificationFor: "Admin",
+      Icon: false,
+    })
+      .populate("Profile.ref")
+      .populate({
+        path: "Profile",
+        match: { type: "Contractor" }, // Filter to populate only 'Contractor' references
+        populate: { path: "ref" }, // Populate the 'Contractor' reference
+      })
+      .sort({ createdAt: -1 });
+
+    const notificationIds = getNotification.map(
+      (notification) => notification._id
+    );
+
+    const updateIconToRead = await NotificationModel.updateMany(
+      { _id: { $in: notificationIds } },
+      { $set: { Icon: true } }
+    );
+
+    if (updateIconToRead.acknowledged) {
+      return res.status(201).json({ status: true, message: "Icon cleared" });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ status: false, message: "something went wrong", err: error });
+  }
+};
