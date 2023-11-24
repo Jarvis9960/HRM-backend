@@ -73,3 +73,32 @@ export const getNotificationforContractors = async (req, res) => {
       .json({ status: false, message: "something went wrong", err: error });
   }
 };
+
+export const makeNotificationRead = async (req, res) => {
+  try {
+    const { notificationId } = req.body;
+
+    if (!notificationId) {
+      return res
+        .status(422)
+        .json({ status: false, message: "Notification id is not given" });
+    }
+
+    const makeRead = await NotificationModel.updateOne(
+      { _id: notificationId },
+      { $set: { read: true } }
+    );
+
+    if (makeRead.acknowledged) {
+      return res
+        .status(201)
+        .json({ status: true, message: "Notification Readed" });
+    }
+  } catch (error) {
+    return res
+      .status(500)
+      .json({ status: false, message: "something went wrong", err: error });
+  }
+};
+
+
